@@ -68,6 +68,16 @@ const productSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  maxPerOrder: {
+    type: Number,
+    default: null, // null = no limit
+    min: 1
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+    index: true
+  },
   specs: {
     type: specsSchema,
     required: true

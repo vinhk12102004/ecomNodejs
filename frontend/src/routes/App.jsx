@@ -1,20 +1,68 @@
+import { useEffect } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import HomePage from "../screens/HomePage.jsx";
 import ProductDetail from "../screens/ProductDetail.jsx";
+import CartPage from "../screens/CartPage.jsx";
+import CheckoutPage from "../screens/CheckoutPage.jsx";
+import ThankYouPage from "../screens/ThankYouPage.jsx";
+import useCart from "../hooks/useCart.js";
 
 export default function App(){
+  const { count, fetchCount } = useCart();
+  
+  // Fetch cart count on mount and on focus
+  useEffect(() => {
+    fetchCount();
+    
+    const handleFocus = () => {
+      fetchCount();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [fetchCount]);
+  
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
         <div className="container flex items-center justify-between py-3">
-          <Link to="/" className="font-semibold text-lg">💻 Ecom Laptop</Link>
-          <nav className="text-sm text-slate-600">Made with React + Vite</nav>
+          <Link to="/" className="font-semibold text-lg">Xparadise</Link>
+          
+          <div className="flex items-center gap-6">
+            <nav className="text-sm text-slate-600 hidden sm:block">Shopping Bag</nav>
+            
+            {/* Cart Icon */}
+            <Link to="/cart" className="relative group">
+              <svg 
+                className="w-6 h-6 text-gray-700 group-hover:text-blue-600 transition" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              
+              {/* Cart Badge with animation */}
+              {count > 0 && (
+                <span 
+                  key={count}
+                  className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce"
+                  style={{ animationIterationCount: 2, animationDuration: '0.5s' }}
+                >
+                  {count}
+                </span>
+              )}
+            </Link>
+          </div>
         </div>
       </header>
       <main className="container py-6">
         <Routes>
           <Route path="/" element={<HomePage/>} />
           <Route path="/product/:id" element={<ProductDetail/>} />
+          <Route path="/cart" element={<CartPage/>} />
+          <Route path="/checkout" element={<CheckoutPage/>} />
+          <Route path="/thank-you" element={<ThankYouPage/>} />
         </Routes>
       </main>
       <footer className="border-t py-6 text-center text-xs text-slate-500">

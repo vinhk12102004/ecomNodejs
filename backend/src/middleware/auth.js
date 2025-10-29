@@ -1,8 +1,14 @@
 import jwt from "jsonwebtoken";
 
-export function authGuard(requiredRoles = []) {
+export function authGuard(requiredRoles = [], options = {}) {
   return (req, res, next) => {
     const authHeader = req.headers.authorization;
+    
+    // If optional auth and no token, skip authentication
+    if (options.optional && (!authHeader || !authHeader.startsWith("Bearer "))) {
+      return next();
+    }
+    
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ error: "No token provided" });
     }
@@ -19,6 +25,10 @@ export function authGuard(requiredRoles = []) {
       
       next();
     } catch (err) {
+      // If optional auth and invalid token, skip authentication
+      if (options.optional) {
+        return next();
+      }
       return res.status(401).json({ error: "Invalid token" });
     }
   };
