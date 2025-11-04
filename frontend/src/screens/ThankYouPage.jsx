@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 /**
  * ThankYouPage Component
@@ -7,7 +7,8 @@ import { Link, useLocation } from 'react-router-dom';
  */
 export default function ThankYouPage() {
   const location = useLocation();
-  const { orderId, email } = location.state || {};
+  const navigate = useNavigate();
+  const { orderId, email, order } = location.state || {};
 
   useEffect(() => {
     // Scroll to top on mount
@@ -53,6 +54,14 @@ export default function ThankYouPage() {
                 <span className="font-mono font-semibold text-slate-900">
                   #{orderId.slice(-8).toUpperCase()}
                 </span>
+              </div>
+              <div className="text-right">
+                <button
+                  onClick={() => navigate(`/order/${orderId}`, { state: { order } })}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Xem chi tiết đơn hàng →
+                </button>
               </div>
               {email && (
                 <div className="flex justify-between items-center">

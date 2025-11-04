@@ -58,11 +58,12 @@ const useCart = create((set, get) => ({
    * Add item to cart
    * @param {String} productId 
    * @param {Number} qty 
+   * @param {String} skuId - Optional variant SKU
    */
-  add: async (productId, qty = 1) => {
+  add: async (productId, qty = 1, skuId = null) => {
     set({ loading: true, error: null });
     try {
-      const response = await api.addItem(productId, qty, getHeaders());
+      const response = await api.addItem(productId, qty, skuId, getHeaders());
       saveGuestToken(response);
       
       const { items = [], subtotal = 0, count = 0 } = response.data;
@@ -165,6 +166,50 @@ const useCart = create((set, get) => ({
       set({ count });
     } catch (err) {
       console.error('Fetch count error:', err);
+    }
+  },
+
+  /**
+   * Bulk add multiple items to cart
+   * @param {Array} items - [{ productId, skuId?, qty }]
+   * @returns {Object} { success, results, cart, warnings }
+   */
+  addBulk: async (items) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return { 
+        success: false, 
+        error: 'Items array is required and cannot be empty' 
+      };
+    }
+
+    set({ loading: true, error: null });
+    
+    try {
+      const response = await api.bulkAddItems(items, getHeaders());
+      saveGuestToken(response);
+      
+      const { results, cart, warnings } = response.data;
+      
+      // Update cart state
+      if (cart) {
+        const { items: cartItems = [], subtotal = 0, count = 0 } = cart;
+        set({ items: cartItems, subtotal, count, loading: false });
+      }
+      
+      return { 
+        success: true, 
+        results, 
+        warnings 
+      };
+    } catch (err) {
+      const error = err.response?.data?.error || 'Failed to add items';
+      set({ error, loading: false });
+      console.error('Bulk add error:', err);
+      
+      return { 
+        success: false, 
+        error 
+      };
     }
   }
 }));

@@ -1,0 +1,734 @@
+[
+  {
+    "name": "MacBook Air M2 13-inch",
+    "brand": "Apple",
+    "price": 1199,
+    "description": "Ultra-thin laptop with M2 chip, perfect for students and professionals\n\nThis Apple laptop features the cutting-edge Apple M2 chip, delivering exceptional performance for both professional and creative workloads. With 8GB of unified memory and 256GB of ultra-fast NVMe storage, multitasking is seamless. The stunning 13.6-inch Liquid Retina display with 2560x1664 resolution brings your content to life. Weighing just 1.24kg, it's incredibly portable. Battery life is exceptional with 52.6Wh capacity, perfect for all-day productivity. Includes USB-C, MagSafe 3, Headphone Jack ports for connectivity.",
+    "images": [
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800",
+      "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800",
+      "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800"
+    ],
+    "image": "https://example.com/macbook-air-m2.jpg",
+    "rating": 4.7,
+    "stock": 25,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "Apple M2",
+        "cores": 8,
+        "threads": 8,
+        "baseGHz": 3.2,
+        "boostGHz": 3.5
+      },
+      "ramGB": 8,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 256
+      },
+      "gpu": {
+        "model": "Apple M2 GPU",
+        "vramGB": 8
+      },
+      "screen": {
+        "sizeInch": 13.6,
+        "resolution": "2560x1664",
+        "panel": "Liquid Retina",
+        "refreshHz": 60
+      },
+      "weightKg": 1.24,
+      "batteryWh": 52.6,
+      "os": "macOS Ventura",
+      "ports": [
+        "USB-C",
+        "MagSafe 3",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6",
+      "bluetooth": "Bluetooth 5.0"
+    }
+  },
+  {
+    "name": "Dell XPS 13 9320",
+    "brand": "Dell",
+    "price": 1299,
+    "description": "Premium ultrabook with stunning 13.4-inch display and excellent build quality\n\nThis premium ultrabook combines sleek design with powerful performance. Powered by the Intel Core i7-1260P processor with 12 cores, it handles everyday tasks with ease. 16GB RAM ensures smooth multitasking, while 512GB NVMe storage provides fast boot and load times. The gorgeous 13.4-inch IPS display with 1920x1200 resolution delivers stunning visuals. At just 1.27kg, it's incredibly portable without sacrificing performance. 51Wh battery provides excellent battery life for mobile productivity. Features modern connectivity options including USB-C, Thunderbolt 4, MicroSD, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800",
+      "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=800",
+      "https://images.unsplash.com/photo-1616429762848-629be3eccdae?w=800",
+      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800"
+    ],
+    "image": "https://example.com/dell-xps-13.jpg",
+    "rating": 4.5,
+    "stock": 18,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "Intel Core i7-1260P",
+        "cores": 12,
+        "threads": 16,
+        "baseGHz": 2.1,
+        "boostGHz": 4.7
+      },
+      "ramGB": 16,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 512
+      },
+      "gpu": {
+        "model": "Intel Iris Xe",
+        "vramGB": 0
+      },
+      "screen": {
+        "sizeInch": 13.4,
+        "resolution": "1920x1200",
+        "panel": "IPS",
+        "refreshHz": 60
+      },
+      "weightKg": 1.27,
+      "batteryWh": 51,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "Thunderbolt 4",
+        "MicroSD",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6E",
+      "bluetooth": "Bluetooth 5.2"
+    }
+  },
+  {
+    "name": "ASUS ROG Zephyrus G14 GA402",
+    "brand": "Asus",
+    "price": 1399,
+    "description": "Compact gaming laptop with AMD Ryzen 9 and RTX 4060\n\nBuilt for serious gamers and content creators, this powerhouse laptop packs the AMD Ryzen 9 7940HS processor with 8 cores and 16 threads. The NVIDIA RTX 4060 GPU with 8GB VRAM delivers stunning graphics and smooth gameplay at high settings. Equipped with 16GB RAM and 1024GB NVMe storage for fast load times. The 14-inch IPS display features 165Hz refresh rate for buttery-smooth visuals. Advanced cooling system keeps performance consistent during intensive gaming sessions. Connectivity includes USB-C, USB-A, HDMI, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800",
+      "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=800",
+      "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=800",
+      "https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=800",
+      "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800"
+    ],
+    "image": "https://example.com/asus-rog-g14-2023.jpg",
+    "rating": 4.6,
+    "stock": 8,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "AMD Ryzen 9 7940HS",
+        "cores": 8,
+        "threads": 16,
+        "baseGHz": 4,
+        "boostGHz": 5.2
+      },
+      "ramGB": 16,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 1024
+      },
+      "gpu": {
+        "model": "NVIDIA RTX 4060",
+        "vramGB": 8
+      },
+      "screen": {
+        "sizeInch": 14,
+        "resolution": "2560x1600",
+        "panel": "IPS",
+        "refreshHz": 165
+      },
+      "weightKg": 1.65,
+      "batteryWh": 76,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "HDMI",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6E",
+      "bluetooth": "Bluetooth 5.2"
+    }
+  },
+  {
+    "name": "Lenovo Legion 5 Pro",
+    "brand": "Lenovo",
+    "price": 1599,
+    "description": "Gaming laptop with powerful RTX 4070 and high-refresh display\n\nBuilt for serious gamers and content creators, this powerhouse laptop packs the AMD Ryzen 7 7745HX processor with 8 cores and 16 threads. The NVIDIA RTX 4070 GPU with 8GB VRAM delivers stunning graphics and smooth gameplay at high settings. Equipped with 32GB RAM and 1024GB NVMe storage for fast load times. The 16-inch IPS display features 165Hz refresh rate for buttery-smooth visuals. Advanced cooling system keeps performance consistent during intensive gaming sessions. Connectivity includes USB-C, USB-A, HDMI, Ethernet, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=800",
+      "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800"
+    ],
+    "image": "https://example.com/lenovo-legion-5-pro.jpg",
+    "rating": 4.4,
+    "stock": 12,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "AMD Ryzen 7 7745HX",
+        "cores": 8,
+        "threads": 16,
+        "baseGHz": 3.2,
+        "boostGHz": 5.1
+      },
+      "ramGB": 32,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 1024
+      },
+      "gpu": {
+        "model": "NVIDIA RTX 4070",
+        "vramGB": 8
+      },
+      "screen": {
+        "sizeInch": 16,
+        "resolution": "2560x1600",
+        "panel": "IPS",
+        "refreshHz": 165
+      },
+      "weightKg": 2.5,
+      "batteryWh": 80,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "HDMI",
+        "Ethernet",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6E",
+      "bluetooth": "Bluetooth 5.1"
+    }
+  },
+  {
+    "name": "Acer Swift X SFX14-41G",
+    "brand": "Acer",
+    "price": 1099,
+    "description": "Thin and light laptop with RTX 3050 Ti for content creation\n\nThis premium ultrabook combines sleek design with powerful performance. Powered by the AMD Ryzen 7 5800U processor with 8 cores, it handles everyday tasks with ease. 16GB RAM ensures smooth multitasking, while 512GB NVMe storage provides fast boot and load times. The gorgeous 14-inch IPS display with 1920x1080 resolution delivers stunning visuals. At just 1.39kg, it's incredibly portable without sacrificing performance. 59Wh battery provides excellent battery life for mobile productivity. Features modern connectivity options including USB-C, USB-A, HDMI, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
+      "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800",
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800"
+    ],
+    "image": "https://example.com/acer-swift-x.jpg",
+    "rating": 4.2,
+    "stock": 14,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "AMD Ryzen 7 5800U",
+        "cores": 8,
+        "threads": 16,
+        "baseGHz": 1.9,
+        "boostGHz": 4.4
+      },
+      "ramGB": 16,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 512
+      },
+      "gpu": {
+        "model": "NVIDIA RTX 3050 Ti",
+        "vramGB": 4
+      },
+      "screen": {
+        "sizeInch": 14,
+        "resolution": "1920x1080",
+        "panel": "IPS",
+        "refreshHz": 60
+      },
+      "weightKg": 1.39,
+      "batteryWh": 59,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "HDMI",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6",
+      "bluetooth": "Bluetooth 5.0"
+    }
+  },
+  {
+    "name": "MacBook Pro 16-inch M3 Max",
+    "brand": "Apple",
+    "price": 3499,
+    "description": "Professional laptop with M3 Max chip for intensive workloads\n\nThis Apple laptop features the cutting-edge Apple M3 Max chip, delivering exceptional performance for both professional and creative workloads. With 36GB of unified memory and 1024GB of ultra-fast NVMe storage, multitasking is seamless. The stunning 16.2-inch Liquid Retina XDR display with 3456x2234 resolution brings your content to life. Weighing just 2.16kg, it's incredibly portable. Battery life is exceptional with 100Wh capacity, perfect for all-day productivity. Includes USB-C, Thunderbolt 4, SDXC, HDMI, MagSafe 3 ports for connectivity.",
+    "images": [
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800",
+      "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800",
+      "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800",
+      "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800",
+      "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=800"
+    ],
+    "image": "https://example.com/macbook-pro-16-m3-max.jpg",
+    "rating": 4.8,
+    "stock": 5,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "Apple M3 Max",
+        "cores": 14,
+        "threads": 14,
+        "baseGHz": 3.2,
+        "boostGHz": 4.4
+      },
+      "ramGB": 36,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 1024
+      },
+      "gpu": {
+        "model": "Apple M3 Max GPU",
+        "vramGB": 16
+      },
+      "screen": {
+        "sizeInch": 16.2,
+        "resolution": "3456x2234",
+        "panel": "Liquid Retina XDR",
+        "refreshHz": 120
+      },
+      "weightKg": 2.16,
+      "batteryWh": 100,
+      "os": "macOS Sonoma",
+      "ports": [
+        "USB-C",
+        "Thunderbolt 4",
+        "SDXC",
+        "HDMI",
+        "MagSafe 3"
+      ],
+      "wifi": "Wi-Fi 6E",
+      "bluetooth": "Bluetooth 5.3"
+    }
+  },
+  {
+    "name": "Dell Inspiron 15 3000",
+    "brand": "Dell",
+    "price": 599,
+    "description": "Budget-friendly laptop for everyday computing tasks\n\nAn excellent value laptop for everyday computing needs. Powered by the Intel Core i3-1115G4 processor, it handles web browsing, document editing, and media consumption with ease. 8GB RAM ensures smooth operation of essential applications, while 256GB SSD storage provides ample space for your files. The 15.6-inch TN display with 1920x1080 resolution delivers clear visuals for work and entertainment. Weighing 1.83kg, it's portable enough for students and home users. Includes 41Wh battery and essential connectivity ports: USB-C, USB-A, HDMI, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800",
+      "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=800",
+      "https://images.unsplash.com/photo-1616429762848-629be3eccdae?w=800"
+    ],
+    "image": "https://example.com/dell-inspiron-15-3000.jpg",
+    "rating": 4,
+    "stock": 30,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "Intel Core i3-1115G4",
+        "cores": 2,
+        "threads": 4,
+        "baseGHz": 3,
+        "boostGHz": 4.1
+      },
+      "ramGB": 8,
+      "storage": {
+        "type": "SSD",
+        "sizeGB": 256
+      },
+      "gpu": {
+        "model": "Intel UHD Graphics",
+        "vramGB": 0
+      },
+      "screen": {
+        "sizeInch": 15.6,
+        "resolution": "1920x1080",
+        "panel": "TN",
+        "refreshHz": 60
+      },
+      "weightKg": 1.83,
+      "batteryWh": 41,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "HDMI",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6",
+      "bluetooth": "Bluetooth 5.0"
+    }
+  },
+  {
+    "name": "Lenovo ThinkPad E15 Gen 4",
+    "brand": "Lenovo",
+    "price": 899,
+    "description": "Business laptop with AMD Ryzen processor and professional features\n\nDesigned for professionals who demand reliability and performance, this business laptop features the AMD Ryzen 5 5625U processor, ensuring smooth multitasking and fast application performance. With 16GB RAM and 512GB NVMe storage, you have ample space for all your work files and applications. The 15.6-inch IPS display with 1920x1080 resolution provides crisp visuals for extended work sessions. Weighing 1.75kg, it's portable enough for daily commutes. Enterprise-grade security features and 57Wh battery for all-day productivity. Comprehensive connectivity with USB-C, USB-A, HDMI, Ethernet, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800",
+      "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=800",
+      "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=800",
+      "https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=800"
+    ],
+    "image": "https://example.com/thinkpad-e15-gen4.jpg",
+    "rating": 4.3,
+    "stock": 22,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "AMD Ryzen 5 5625U",
+        "cores": 6,
+        "threads": 12,
+        "baseGHz": 2.3,
+        "boostGHz": 4.3
+      },
+      "ramGB": 16,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 512
+      },
+      "gpu": {
+        "model": "AMD Radeon Graphics",
+        "vramGB": 0
+      },
+      "screen": {
+        "sizeInch": 15.6,
+        "resolution": "1920x1080",
+        "panel": "IPS",
+        "refreshHz": 60
+      },
+      "weightKg": 1.75,
+      "batteryWh": 57,
+      "os": "Windows 11 Pro",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "HDMI",
+        "Ethernet",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6",
+      "bluetooth": "Bluetooth 5.0"
+    }
+  },
+  {
+    "name": "ASUS VivoBook S15",
+    "brand": "Asus",
+    "price": 799,
+    "description": "Stylish laptop with vibrant colors and good performance\n\nAn excellent value laptop for everyday computing needs. Powered by the Intel Core i5-1235U processor, it handles web browsing, document editing, and media consumption with ease. 8GB RAM ensures smooth operation of essential applications, while 512GB NVMe storage provides ample space for your files. The 15.6-inch IPS display with 1920x1080 resolution delivers clear visuals for work and entertainment. Weighing 1.8kg, it's portable enough for students and home users. Includes 50Wh battery and essential connectivity ports: USB-C, USB-A, HDMI, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=800",
+      "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
+      "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800"
+    ],
+    "image": "https://example.com/asus-vivobook-s15.jpg",
+    "rating": 4.1,
+    "stock": 18,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "Intel Core i5-1235U",
+        "cores": 10,
+        "threads": 12,
+        "baseGHz": 1.3,
+        "boostGHz": 4.4
+      },
+      "ramGB": 8,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 512
+      },
+      "gpu": {
+        "model": "Intel Iris Xe",
+        "vramGB": 0
+      },
+      "screen": {
+        "sizeInch": 15.6,
+        "resolution": "1920x1080",
+        "panel": "IPS",
+        "refreshHz": 60
+      },
+      "weightKg": 1.8,
+      "batteryWh": 50,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "HDMI",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6",
+      "bluetooth": "Bluetooth 5.0"
+    }
+  },
+  {
+    "name": "Acer Aspire 5 A515-56",
+    "brand": "Acer",
+    "price": 649,
+    "description": "Affordable laptop with good performance for daily tasks\n\nAn excellent value laptop for everyday computing needs. Powered by the Intel Core i5-1135G7 processor, it handles web browsing, document editing, and media consumption with ease. 8GB RAM ensures smooth operation of essential applications, while 256GB NVMe storage provides ample space for your files. The 15.6-inch IPS display with 1920x1080 resolution delivers clear visuals for work and entertainment. Weighing 1.65kg, it's portable enough for students and home users. Includes 48Wh battery and essential connectivity ports: USB-C, USB-A, HDMI, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
+      "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800"
+    ],
+    "image": "https://example.com/acer-aspire-5.jpg",
+    "rating": 4,
+    "stock": 28,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "Intel Core i5-1135G7",
+        "cores": 4,
+        "threads": 8,
+        "baseGHz": 2.4,
+        "boostGHz": 4.2
+      },
+      "ramGB": 8,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 256
+      },
+      "gpu": {
+        "model": "Intel Iris Xe",
+        "vramGB": 0
+      },
+      "screen": {
+        "sizeInch": 15.6,
+        "resolution": "1920x1080",
+        "panel": "IPS",
+        "refreshHz": 60
+      },
+      "weightKg": 1.65,
+      "batteryWh": 48,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "HDMI",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6",
+      "bluetooth": "Bluetooth 5.0"
+    }
+  },
+  {
+    "name": "Razer Blade 14",
+    "brand": "Razer",
+    "price": 1999,
+    "description": "Compact gaming laptop with RTX 4070 and premium build\n\nBuilt for serious gamers and content creators, this powerhouse laptop packs the AMD Ryzen 9 7940HS processor with 8 cores and 16 threads. The NVIDIA RTX 4070 GPU with 8GB VRAM delivers stunning graphics and smooth gameplay at high settings. Equipped with 16GB RAM and 1024GB NVMe storage for fast load times. The 14-inch IPS display features 165Hz refresh rate for buttery-smooth visuals. Advanced cooling system keeps performance consistent during intensive gaming sessions. Connectivity includes USB-C, USB-A, HDMI, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800",
+      "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800",
+      "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800",
+      "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800"
+    ],
+    "image": "https://example.com/razer-blade-14.jpg",
+    "rating": 4.5,
+    "stock": 6,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "AMD Ryzen 9 7940HS",
+        "cores": 8,
+        "threads": 16,
+        "baseGHz": 4,
+        "boostGHz": 5.2
+      },
+      "ramGB": 16,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 1024
+      },
+      "gpu": {
+        "model": "NVIDIA RTX 4070",
+        "vramGB": 8
+      },
+      "screen": {
+        "sizeInch": 14,
+        "resolution": "2560x1600",
+        "panel": "IPS",
+        "refreshHz": 165
+      },
+      "weightKg": 1.78,
+      "batteryWh": 68.1,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "HDMI",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6E",
+      "bluetooth": "Bluetooth 5.2"
+    }
+  },
+  {
+    "name": "Microsoft Surface Laptop 5",
+    "brand": "Microsoft",
+    "price": 1199,
+    "description": "Premium laptop with touchscreen and excellent build quality\n\nThis premium ultrabook combines sleek design with powerful performance. Powered by the Intel Core i5-1235U processor with 10 cores, it handles everyday tasks with ease. 8GB RAM ensures smooth multitasking, while 256GB NVMe storage provides fast boot and load times. The gorgeous 13.5-inch PixelSense Touch display with 2256x1504 resolution delivers stunning visuals. At just 1.27kg, it's incredibly portable without sacrificing performance. 47.4Wh battery provides excellent battery life for mobile productivity. Features modern connectivity options including USB-C, USB-A, Surface Connect, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800",
+      "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=800",
+      "https://images.unsplash.com/photo-1616429762848-629be3eccdae?w=800",
+      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800",
+      "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=800"
+    ],
+    "image": "https://example.com/surface-laptop-5.jpg",
+    "rating": 4.3,
+    "stock": 16,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "Intel Core i5-1235U",
+        "cores": 10,
+        "threads": 12,
+        "baseGHz": 1.3,
+        "boostGHz": 4.4
+      },
+      "ramGB": 8,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 256
+      },
+      "gpu": {
+        "model": "Intel Iris Xe",
+        "vramGB": 0
+      },
+      "screen": {
+        "sizeInch": 13.5,
+        "resolution": "2256x1504",
+        "panel": "PixelSense Touch",
+        "refreshHz": 60
+      },
+      "weightKg": 1.27,
+      "batteryWh": 47.4,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "Surface Connect",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6",
+      "bluetooth": "Bluetooth 5.1"
+    }
+  },
+  {
+    "name": "Gigabyte Aorus 15X",
+    "brand": "Gigabyte",
+    "price": 1799,
+    "description": "High-performance gaming laptop with RTX 4070 and mechanical keyboard\n\nBuilt for serious gamers and content creators, this powerhouse laptop packs the Intel Core i7-13700H processor with 14 cores and 20 threads. The NVIDIA RTX 4070 GPU with 8GB VRAM delivers stunning graphics and smooth gameplay at high settings. Equipped with 32GB RAM and 1024GB NVMe storage for fast load times. The 15.6-inch IPS display features 165Hz refresh rate for buttery-smooth visuals. Advanced cooling system keeps performance consistent during intensive gaming sessions. Connectivity includes USB-C, USB-A, Thunderbolt 4, HDMI, Ethernet, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800",
+      "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=800",
+      "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=800"
+    ],
+    "image": "https://example.com/gigabyte-aorus-15x.jpg",
+    "rating": 4.4,
+    "stock": 8,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "Intel Core i7-13700H",
+        "cores": 14,
+        "threads": 20,
+        "baseGHz": 2.4,
+        "boostGHz": 5
+      },
+      "ramGB": 32,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 1024
+      },
+      "gpu": {
+        "model": "NVIDIA RTX 4070",
+        "vramGB": 8
+      },
+      "screen": {
+        "sizeInch": 15.6,
+        "resolution": "2560x1440",
+        "panel": "IPS",
+        "refreshHz": 165
+      },
+      "weightKg": 2.4,
+      "batteryWh": 99,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "Thunderbolt 4",
+        "HDMI",
+        "Ethernet",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6E",
+      "bluetooth": "Bluetooth 5.2"
+    }
+  },
+  {
+    "name": "Samsung Galaxy Book3 Pro",
+    "brand": "Samsung",
+    "price": 1299,
+    "description": "Premium laptop with AMOLED display and Samsung ecosystem integration\n\nThis premium ultrabook combines sleek design with powerful performance. Powered by the Intel Core i7-1360P processor with 12 cores, it handles everyday tasks with ease. 16GB RAM ensures smooth multitasking, while 512GB NVMe storage provides fast boot and load times. The gorgeous 14-inch AMOLED display with 2880x1800 resolution delivers stunning visuals. At just 1.17kg, it's incredibly portable without sacrificing performance. 63Wh battery provides excellent battery life for mobile productivity. Features modern connectivity options including USB-C, USB-A, Thunderbolt 4, MicroSD, Headphone Jack.",
+    "images": [
+      "https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=800",
+      "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800"
+    ],
+    "image": "https://example.com/samsung-galaxy-book3-pro.jpg",
+    "rating": 4.2,
+    "stock": 14,
+    "maxPerOrder": null,
+    "isActive": true,
+    "specs": {
+      "cpu": {
+        "model": "Intel Core i7-1360P",
+        "cores": 12,
+        "threads": 16,
+        "baseGHz": 2.2,
+        "boostGHz": 5
+      },
+      "ramGB": 16,
+      "storage": {
+        "type": "NVMe",
+        "sizeGB": 512
+      },
+      "gpu": {
+        "model": "Intel Iris Xe",
+        "vramGB": 0
+      },
+      "screen": {
+        "sizeInch": 14,
+        "resolution": "2880x1800",
+        "panel": "AMOLED",
+        "refreshHz": 60
+      },
+      "weightKg": 1.17,
+      "batteryWh": 63,
+      "os": "Windows 11 Home",
+      "ports": [
+        "USB-C",
+        "USB-A",
+        "Thunderbolt 4",
+        "MicroSD",
+        "Headphone Jack"
+      ],
+      "wifi": "Wi-Fi 6E",
+      "bluetooth": "Bluetooth 5.1"
+    }
+  }
+]

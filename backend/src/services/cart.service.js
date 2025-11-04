@@ -1,5 +1,6 @@
 import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
+import ProductVariant from "../models/productVariant.model.js";
 
 /**
  * Calculate cart totals and count
@@ -108,6 +109,38 @@ export async function addItem({ userId, guestToken, productId, skuId = null, qty
     throw error;
   }
 
+  // If skuId is provided, validate and use variant
+  let variant = null;
+  let itemPrice = product.price;
+  let itemStock = product.stock;
+  let itemName = product.name;
+  
+  if (skuId) {
+    variant = await ProductVariant.findOne({ 
+      sku: skuId.toUpperCase(),
+      product: productId,
+      isActive: true
+    });
+    
+    if (!variant) {
+      const error = new Error('Variant not found or not available');
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    // Use variant's price and stock
+    itemPrice = variant.price;
+    itemStock = variant.stock;
+    itemName = `${product.name} - ${variant.name}`;
+  }
+
+  // Check if stock is available
+  if (itemStock < 1) {
+    const error = new Error('Product is out of stock');
+    error.statusCode = 400;
+    throw error;
+  }
+
   // Find or create cart
   const query = userId ? { userId } : { guestToken };
   let cart = await Cart.findOne(query);
@@ -120,10 +153,12 @@ export async function addItem({ userId, guestToken, productId, skuId = null, qty
   }
 
   // Find matching item (by productId + skuId)
-  const itemKey = skuId || productId.toString();
+  const itemKey = skuId ? skuId.toUpperCase() : productId.toString();
   const existingItemIndex = cart.items.findIndex(item => {
-    const currentKey = item.skuId || item.product.toString();
-    return currentKey === itemKey;
+    if (skuId) {
+      return item.skuId && item.skuId.toUpperCase() === itemKey;
+    }
+    return !item.skuId && item.product.toString() === itemKey;
   });
 
   let targetQty = qty;
@@ -135,22 +170,24 @@ export async function addItem({ userId, guestToken, productId, skuId = null, qty
   }
 
   // Apply stock cap
-  if (targetQty > product.stock) {
-    targetQty = product.stock;
+  if (targetQty > itemStock) {
+    targetQty = itemStock;
     warnings.push({
       type: 'stock_cap',
       productId: productId.toString(),
-      message: `Only ${product.stock} available in stock`,
-      allowedQty: product.stock
+      skuId: skuId || null,
+      message: `Only ${itemStock} available in stock`,
+      allowedQty: itemStock
     });
   }
 
-  // Apply maxPerOrder cap
+  // Apply maxPerOrder cap (from product level)
   if (product.maxPerOrder && targetQty > product.maxPerOrder) {
     targetQty = product.maxPerOrder;
     warnings.push({
       type: 'max_per_order',
       productId: productId.toString(),
+      skuId: skuId || null,
       message: `Maximum ${product.maxPerOrder} per order`,
       allowedQty: product.maxPerOrder
     });
@@ -170,10 +207,10 @@ export async function addItem({ userId, guestToken, productId, skuId = null, qty
     // Add new item with snapshots
     cart.items.push({
       product: productId,
-      skuId: skuId,
+      skuId: skuId ? skuId.toUpperCase() : null,
       qty: targetQty,
-      priceAtAdd: product.price,
-      nameSnapshot: product.name,
+      priceAtAdd: itemPrice,
+      nameSnapshot: itemName,
       imageSnapshot: product.image
     });
   }
@@ -182,129 +219,6 @@ export async function addItem({ userId, guestToken, productId, skuId = null, qty
   await cart.populate('items.product');
 
   return formatCartResponse(cart, warnings);
-}
-
-/**
- * Bulk add items to cart
- * @param {Array} items - [{ productId, skuId?, qty }]
- * @param {Object} context - { userId?, guestToken? }
- * @returns {Object} { results: [{ ok, productId, reason? }], cart }
- */
-export async function bulkAddItems(items, { userId, guestToken }) {
-  const results = [];
-  const warnings = [];
-
-  // Pre-validate all products
-  const productIds = items.map(item => item.productId);
-  const products = await Product.find({ _id: { $in: productIds } });
-  const productMap = new Map(products.map(p => [p._id.toString(), p]));
-
-  // Find or create cart once
-  const query = userId ? { userId } : { guestToken };
-  let cart = await Cart.findOne(query);
-
-  if (!cart) {
-    cart = new Cart({
-      ...(userId ? { userId } : { guestToken }),
-      items: []
-    });
-  }
-
-  // Process each item
-  for (const item of items) {
-    const { productId, skuId = null, qty = 1 } = item;
-    const product = productMap.get(productId);
-
-    // Validate product
-    if (!product) {
-      results.push({
-        ok: false,
-        productId,
-        reason: 'Product not found'
-      });
-      continue;
-    }
-
-    if (!product.isActive) {
-      results.push({
-        ok: false,
-        productId,
-        reason: 'Product not available'
-      });
-      continue;
-    }
-
-    if (product.stock < 1) {
-      results.push({
-        ok: false,
-        productId,
-        reason: 'Out of stock'
-      });
-      continue;
-    }
-
-    // Find matching item in cart
-    const itemKey = skuId || productId;
-    const existingItemIndex = cart.items.findIndex(cartItem => {
-      const currentKey = cartItem.skuId || cartItem.product.toString();
-      return currentKey === itemKey;
-    });
-
-    let targetQty = qty;
-
-    if (existingItemIndex > -1) {
-      targetQty = cart.items[existingItemIndex].qty + qty;
-    }
-
-    // Apply caps
-    if (targetQty > product.stock) {
-      targetQty = product.stock;
-      warnings.push({
-        type: 'stock_cap',
-        productId,
-        message: `${product.name}: Only ${product.stock} available`,
-        allowedQty: product.stock
-      });
-    }
-
-    if (product.maxPerOrder && targetQty > product.maxPerOrder) {
-      targetQty = product.maxPerOrder;
-      warnings.push({
-        type: 'max_per_order',
-        productId,
-        message: `${product.name}: Max ${product.maxPerOrder} per order`,
-        allowedQty: product.maxPerOrder
-      });
-    }
-
-    // Update or add item
-    if (existingItemIndex > -1) {
-      cart.items[existingItemIndex].qty = targetQty;
-    } else {
-      cart.items.push({
-        product: productId,
-        skuId: skuId,
-        qty: targetQty,
-        priceAtAdd: product.price,
-        nameSnapshot: product.name,
-        imageSnapshot: product.image
-      });
-    }
-
-    results.push({
-      ok: true,
-      productId,
-      addedQty: targetQty
-    });
-  }
-
-  await cart.save();
-  await cart.populate('items.product');
-
-  return {
-    results,
-    cart: formatCartResponse(cart, warnings)
-  };
 }
 
 /**
@@ -329,10 +243,12 @@ export async function updateItemQty({ userId, guestToken, productId, skuId = nul
   }
 
   // Find item
-  const itemKey = skuId || productId;
+  const itemKey = skuId ? skuId.toUpperCase() : productId;
   const itemIndex = cart.items.findIndex(item => {
-    const currentKey = item.skuId || item.product.toString();
-    return currentKey === itemKey;
+    if (skuId) {
+      return item.skuId && item.skuId.toUpperCase() === itemKey;
+    }
+    return !item.skuId && item.product.toString() === itemKey;
   });
 
   if (itemIndex === -1) {
@@ -341,7 +257,7 @@ export async function updateItemQty({ userId, guestToken, productId, skuId = nul
     throw error;
   }
 
-  // Validate stock
+  // Validate stock - check variant if skuId exists
   const product = await Product.findById(productId);
   if (!product) {
     const error = new Error('Product not found');
@@ -349,17 +265,36 @@ export async function updateItemQty({ userId, guestToken, productId, skuId = nul
     throw error;
   }
 
+  let itemStock = product.stock;
+  
+  if (skuId) {
+    const variant = await ProductVariant.findOne({ 
+      sku: skuId.toUpperCase(),
+      product: productId,
+      isActive: true
+    });
+    
+    if (!variant) {
+      const error = new Error('Variant not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    itemStock = variant.stock;
+  }
+
   const warnings = [];
   let targetQty = qty;
 
   // Apply caps
-  if (targetQty > product.stock) {
-    targetQty = product.stock;
+  if (targetQty > itemStock) {
+    targetQty = itemStock;
     warnings.push({
       type: 'stock_cap',
       productId: productId.toString(),
-      message: `Only ${product.stock} available in stock`,
-      allowedQty: product.stock
+      skuId: skuId || null,
+      message: `Only ${itemStock} available in stock`,
+      allowedQty: itemStock
     });
   }
 
@@ -368,6 +303,7 @@ export async function updateItemQty({ userId, guestToken, productId, skuId = nul
     warnings.push({
       type: 'max_per_order',
       productId: productId.toString(),
+      skuId: skuId || null,
       message: `Maximum ${product.maxPerOrder} per order`,
       allowedQty: product.maxPerOrder
     });
@@ -396,10 +332,12 @@ export async function removeItem({ userId, guestToken, productId, skuId = null }
     throw error;
   }
 
-  const itemKey = skuId || productId;
+  const itemKey = skuId ? skuId.toUpperCase() : productId;
   cart.items = cart.items.filter(item => {
-    const currentKey = item.skuId || item.product.toString();
-    return currentKey !== itemKey;
+    if (skuId) {
+      return !(item.skuId && item.skuId.toUpperCase() === itemKey);
+    }
+    return !((!item.skuId) && item.product.toString() === itemKey);
   });
 
   await cart.save();
@@ -503,4 +441,159 @@ export async function mergeGuestCart({ userId, guestToken }) {
   await userCart.populate('items.product');
 
   return formatCartResponse(userCart, warnings);
+}
+
+/**
+ * Bulk add multiple items to cart
+ * @param {Object} params - { userId?, guestToken?, items: [{ productId, skuId?, qty }] }
+ * @returns {Object} { results: [{ success, productId, skuId?, error? }], cart }
+ */
+export async function bulkAddItems({ userId, guestToken, items = [] }) {
+  if (!Array.isArray(items) || items.length === 0) {
+    throw new Error('Items array is required and cannot be empty');
+  }
+
+  if (items.length > 20) {
+    throw new Error('Cannot add more than 20 items at once');
+  }
+
+  const results = [];
+  const warnings = [];
+
+  // Process each item
+  for (const item of items) {
+    const { productId, skuId = null, qty = 1 } = item;
+
+    try {
+      // Validate product exists
+      const product = await Product.findById(productId);
+      if (!product || !product.isActive) {
+        results.push({
+          success: false,
+          productId,
+          skuId,
+          error: 'Product not found or inactive'
+        });
+        continue;
+      }
+
+      let priceAtAdd = product.price;
+      let currentStock = product.stock;
+      let variant = null;
+
+      // If skuId provided, validate and use variant
+      if (skuId) {
+        variant = await ProductVariant.findOne({ sku: skuId, product: productId });
+        
+        if (!variant || !variant.isActive) {
+          results.push({
+            success: false,
+            productId,
+            skuId,
+            error: 'Variant not found or inactive'
+          });
+          continue;
+        }
+
+        priceAtAdd = variant.price;
+        currentStock = variant.stock;
+      }
+
+      // Check stock availability
+      if (currentStock < 1) {
+        results.push({
+          success: false,
+          productId,
+          skuId,
+          error: 'Out of stock'
+        });
+        continue;
+      }
+
+      // Add to cart (without returning full cart each time for performance)
+      const query = userId ? { userId } : { guestToken };
+      let cart = await Cart.findOne(query);
+
+      if (!cart) {
+        cart = new Cart(query);
+      }
+
+      const itemKey = skuId || productId.toString();
+      const existingItemIndex = cart.items.findIndex(i => {
+        const currentKey = i.skuId || i.product.toString();
+        return currentKey === itemKey;
+      });
+
+      let targetQty = qty;
+
+      if (existingItemIndex > -1) {
+        targetQty = cart.items[existingItemIndex].qty + qty;
+      }
+
+      // Apply stock cap
+      if (targetQty > currentStock) {
+        targetQty = currentStock;
+        warnings.push({
+          type: 'stock_cap',
+          productId: productId.toString(),
+          skuId,
+          message: `${product.name}: Capped to available stock (${currentStock})`,
+          allowedQty: currentStock
+        });
+      }
+
+      // Apply max per order
+      if (product.maxPerOrder && targetQty > product.maxPerOrder) {
+        targetQty = product.maxPerOrder;
+        warnings.push({
+          type: 'max_per_order',
+          productId: productId.toString(),
+          skuId,
+          message: `${product.name}: Capped to max per order (${product.maxPerOrder})`,
+          allowedQty: product.maxPerOrder
+        });
+      }
+
+      // Update or add item
+      if (existingItemIndex > -1) {
+        cart.items[existingItemIndex].qty = targetQty;
+      } else {
+        cart.items.push({
+          product: productId,
+          skuId,
+          qty: targetQty,
+          priceAtAdd,
+          nameSnapshot: variant ? `${product.name} - ${variant.name}` : product.name,
+          imageSnapshot: product.images?.[0] || product.image || ''
+        });
+      }
+
+      await cart.save();
+
+      results.push({
+        success: true,
+        productId,
+        skuId,
+        addedQty: targetQty
+      });
+
+    } catch (error) {
+      results.push({
+        success: false,
+        productId,
+        skuId,
+        error: error.message || 'Failed to add item'
+      });
+    }
+  }
+
+  // Fetch final cart state
+  const query = userId ? { userId } : { guestToken };
+  const finalCart = await Cart.findOne(query).populate('items.product');
+
+  return {
+    results,
+    warnings,
+    cart: formatCartResponse(finalCart, warnings)
+  };
 }

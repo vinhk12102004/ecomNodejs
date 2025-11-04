@@ -45,6 +45,17 @@ ecomNodejs/
 └── docker-compose.yml
 ```
 
+## 📚 Hướng dẫn Chi tiết
+
+- 📖 **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - ⚡ Lệnh thường dùng nhất (Cheat Sheet)
+- 🚀 **[REBUILD_AND_TEST_GUIDE.md](./REBUILD_AND_TEST_GUIDE.md)** - 🔄 Rebuild + 🗄️ Database + 🧪 Test (Complete Guide)
+- 🌱 **[Database Seed System](./backend/database/README.md)** - ⭐ Seed System Overview & Final Assignment Compliance
+- 💾 **Backup Scripts:**
+  - `backup-db.sh` (Linux/Mac)
+  - `backup-db.bat` (Windows)
+
+---
+
 ## 🛠️ Cài đặt và chạy
 
 ### Yêu cầu
@@ -63,7 +74,10 @@ cd ecomNodejs
 PORT=4000
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_secret_key_here
+JWT_REFRESH_SECRET=your_refresh_secret_here
 NODE_ENV=development
+GOOGLE_CLIENT_ID=385225605871-pg5d0rvifvgupu7s5rasu5itpbd4gsiu.apps.googleusercontent.com
+# GOOGLE_CLIENT_SECRET= (optional, not required for ID token verify)
 ```
 
 ### Bước 3: Chạy với Docker
@@ -80,8 +94,23 @@ docker-compose up -d --build
 # Vào container backend
 docker exec -it ecomnodejs-api-1 sh
 
-# Chạy seed
+# 1. Chạy seed products (14 laptop samples)
 npm run seed:products
+
+# 2. Chạy seed images & descriptions (3+ images per product, 200+ chars)
+node database/seed-products-images.js
+
+# 3. Chạy seed variants (2-3 variants per product)
+npm run seed:variants
+
+# 4. Export dữ liệu từ MongoDB ra file JSON (để backup hoặc seed lại)
+npm run export:products
+
+# Hoặc chạy trực tiếp từ host machine:
+docker exec ecomnodejs-api-1 npm run seed:products
+docker exec ecomnodejs-api-1 node database/seed-products-images.js
+docker exec ecomnodejs-api-1 npm run seed:variants
+docker exec ecomnodejs-api-1 npm run export:products
 ```
 
 ## 🌐 Truy cập
@@ -89,28 +118,235 @@ npm run seed:products
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:4000
 - **API Health Check**: http://localhost:4000/health
+- **Sitemap**: http://localhost:4000/sitemap.xml
 
 ## 📚 API Documentation
+### Google Login
 
-Xem file [TEST_API.md](./TEST_API.md) để biết chi tiết về các API endpoints.
+1) Tạo OAuth 2.0 Client (Web) trong Google Cloud Console và lấy `Client ID`.
+2) FE gửi `idToken` nhận được từ Google đến endpoint dưới đây:
+
+```bash
+POST /auth/google
+Content-Type: application/json
+
+{ "idToken": "<GOOGLE_ID_TOKEN>" }
+```
+
+Response trả về `{ user, accessToken }` và set cookie refresh token như login thường.
+
+Frontend: cấu hình trong `docker-compose.yml`:
+
+```yaml
+environment:
+  - VITE_GOOGLE_CLIENT_ID=385225605871-pg5d0rvifvgupu7s5rasu5itpbd4gsiu.apps.googleusercontent.com
+```
+
+**⚠️ QUAN TRỌNG:** Nếu gặp lỗi "no registered origin" hoặc "invalid_client", vui lòng xem **[GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md)** để cấu hình Google Cloud Console OAuth.
+
+
+Chi tiết về API endpoints và testing được mô tả trong:
+- **[REBUILD_AND_TEST_GUIDE.md](./REBUILD_AND_TEST_GUIDE.md#test-api)** - 🧪 Test API section với cURL examples
+- Các API endpoints chính được liệt kê bên dưới
+
+### Product Variants API
+
+#### List variants for a product
+```bash
+GET /products/:id/variants?page=1&limit=20
+
+Response:
+{
+  "data": [
+    {
+      "_id": "...",
+      "product": "...",
+      "sku": "SKU-ABC123",
+      "name": "16GB / 512GB / Silver",
+      "price": 25000000,
+      "stock": 30,
+      "attributes": {
+        "ramGB": 16,
+        "storageGB": 512,
+        "color": "Silver"
+      },
+      "isActive": true
+    }
+  ],
+  "meta": {
+    "total": 3,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 1
+  }
+}
+```
+
+#### Get single variant by SKU
+```bash
+GET /variants/:sku
+
+Example: GET /variants/SKU-ABC123
+```
+
+#### Create variant (Admin only)
+```bash
+POST /admin/products/:id/variants
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "sku": "SKU-LAPTOP-16-512-SILVER",
+  "name": "16GB / 512GB / Silver",
+  "price": 25000000,
+  "stock": 50,
+  "attributes": {
+    "ramGB": 16,
+    "storageGB": 512,
+    "color": "Silver"
+  }
+}
+```
+
+#### Update variant (Admin only)
+```bash
+PATCH /admin/variants/:sku
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "price": 24000000,
+  "stock": 45
+}
+```
+
+#### Delete/Deactivate variant (Admin only)
+```bash
+DELETE /admin/variants/:sku
+Authorization: Bearer <admin_token>
+
+# Soft delete (recommended):
+DELETE /admin/variants/:sku
+
+# Permanent delete (use with caution):
+DELETE /admin/variants/:sku?permanent=true
+```
+
+### Cart with Variants
+
+Khi thêm variant vào giỏ hàng, cần gửi `skuId`:
+
+```bash
+POST /cart/items
+Content-Type: application/json
+
+{
+  "productId": "product_id_here",
+  "skuId": "SKU-ABC123",
+  "qty": 1
+}
+```
+
+**Lưu ý:** 
+- Mỗi product phải có ít nhất 2 variants
+- Mỗi variant có stock độc lập
+- SKU phải unique trong toàn bộ hệ thống
+
+### Bulk Add to Cart
+
+Thêm nhiều sản phẩm cùng lúc (maximum 20 items):
+
+```bash
+POST /cart/items/bulk
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "productId": "product_id_1",
+      "skuId": "SKU-ABC123",
+      "qty": 2
+    },
+    {
+      "productId": "product_id_2",
+      "qty": 1
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "success": true,
+      "productId": "product_id_1",
+      "skuId": "SKU-ABC123",
+      "addedQty": 2
+    },
+    {
+      "success": false,
+      "productId": "product_id_2",
+      "error": "Out of stock"
+    }
+  ],
+  "warnings": [
+    {
+      "type": "stock_cap",
+      "message": "Product X: Capped to available stock (5)",
+      "allowedQty": 5
+    }
+  ],
+  "cart": {
+    "items": [...],
+    "subtotal": 3000,
+    "count": 3
+  }
+}
+```
+
+**Features:**
+- ✅ Thêm tối đa 20 items mỗi request
+- ✅ Mỗi item được validate độc lập
+- ✅ Failed items không block successful items
+- ✅ Detailed results cho từng item
+- ✅ Warnings cho stock caps và limits
 
 ## 🎯 Tính năng
 
 ### Frontend
+- ✅ **Landing Page Sections** - Hero, New Products, Best Sellers, Categories
+- ✅ **Product Categories** - Gaming, Business, Ultrabooks sections
 - ✅ Danh sách sản phẩm với pagination
 - ✅ Tìm kiếm theo tên
-- ✅ Lọc theo brand, giá (min/max)
-- ✅ Sắp xếp (mới nhất, giá tăng/giảm)
+- ✅ Lọc theo brand, giá (min/max), **rating** (3★+, 4★+, 5★)
+- ✅ Sắp xếp (mới nhất, giá tăng/giảm, **tên A-Z/Z-A**, đánh giá cao)
 - ✅ Chi tiết sản phẩm với full specs
-- ✅ Responsive design
+- ✅ **Product Images Gallery** - 3+ images với thumbnails
+- ✅ **Extended Description** - Mô tả chi tiết 200+ ký tự
+- ✅ **Product Variants** - Chọn RAM/Storage/Color với variant selector UI
+- ✅ **Variant Tooltip** - Cảnh báo khi chưa chọn variant
+- ✅ Cart với variant support (skuId)
+- ✅ **Bulk Add to Cart** - Thêm nhiều sản phẩm cùng lúc với modal kết quả
+- ✅ Guest checkout
+- ✅ Responsive design với modern UI
 
 ### Backend
 - ✅ RESTful API
 - ✅ Authentication (JWT)
 - ✅ Product CRUD operations
-- ✅ Advanced filtering & sorting
+- ✅ **Bulk Add API** - Thêm tối đa 20 items cùng lúc với detailed results
+- ✅ **Product Images Validation** - Minimum 3 images required
+- ✅ **Description Validation** - Minimum 200 characters
+- ✅ **Product Variants** - Independent inventory tracking
+- ✅ **Rating Filter** - Filter by rating (≥3, ≥4, =5)
+- ✅ **Sort by Name** - Alphabetical sorting (A-Z, Z-A)
+- ✅ Cart & Checkout system
+- ✅ Advanced filtering & sorting (brand, price, RAM, rating)
 - ✅ Pagination
 - ✅ Input validation
+- ✅ Email notifications
 
 ## 🐳 Docker Commands
 

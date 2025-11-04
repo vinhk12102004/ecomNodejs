@@ -1,3 +1,5 @@
+﻿version: '3.8'
+
 services:
   api:
     build:
@@ -6,10 +8,14 @@ services:
     ports:
       - "4000:4000"
     env_file: ./backend/.env
+    environment:
+      - GOOGLE_CLIENT_ID=385225605871-pg5d0rvifvgupu7s5rasu5itpbd4gsiu.apps.googleusercontent.com
     volumes:
       - ./backend/src:/app/src
       - ./backend/database:/app/database
     command: npm run dev
+    depends_on:
+      - mongodb
 
   web:
     build: ./frontend
@@ -19,7 +25,21 @@ services:
       - ./frontend/src:/app/src
     environment:
       - VITE_API_BASE_URL=http://localhost:4000
-    command: npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
+      - VITE_GOOGLE_CLIENT_ID=385225605871-pg5d0rvifvgupu7s5rasu5itpbd4gsiu.apps.googleusercontent.com
+    command: sh -c "VITE_API_BASE_URL=http://localhost:4000 VITE_GOOGLE_CLIENT_ID=385225605871-pg5d0rvifvgupu7s5rasu5itpbd4gsiu.apps.googleusercontent.com npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"
     depends_on:
       - api
 
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: ecommerce
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

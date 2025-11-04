@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useCart from '../hooks/useCart.js';
-import { checkoutPreview, checkoutConfirm } from '../lib/api';
+import { checkoutPreview, checkoutConfirm, getAddresses, getMe } from '../lib/api';
 import CartSummary from '../components/CartSummary';
 import ApplyCoupon from '../components/ApplyCoupon';
 
@@ -12,6 +12,12 @@ import ApplyCoupon from '../components/ApplyCoupon';
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { items, subtotal, fetch, clear } = useCart();
+
+  // User & Address state
+  const [user, setUser] = useState(null);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [useNewAddress, setUseNewAddress] = useState(false);
 
   // Form state
   const [email, setEmail] = useState('');
@@ -30,13 +36,41 @@ export default function CheckoutPage() {
   const [previewing, setPreviewing] = useState(false);
   const [previewError, setPreviewError] = useState('');
 
+  // Loyalty points state
+  const [usePoints, setUsePoints] = useState(false);
+  const [redeemPoints, setRedeemPoints] = useState(0);
+
   // Checkout state
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  // Fetch cart on mount
+  // Fetch cart and user data on mount
   useEffect(() => {
     fetch();
+    
+    // Check if user is logged in
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      Promise.all([
+        getMe().then(u => {
+          setUser(u);
+          setEmail(u.email || '');
+        }),
+        getAddresses().then(r => {
+          const addrs = r.addresses || [];
+          setAddresses(addrs);
+          // Prefill with default address
+          const defaultAddr = addrs.find(a => a.isDefault);
+          if (defaultAddr) {
+            setSelectedAddressId(defaultAddr._id);
+            setFullName(defaultAddr.recipient);
+            setPhone(defaultAddr.phone);
+            setAddress(defaultAddr.line1 + (defaultAddr.line2 ? `, ${defaultAddr.line2}` : ''));
+            setCity(defaultAddr.city);
+          }
+        })
+      ]).catch(err => console.error('Failed to load user data:', err));
+    }
   }, []);
 
   // Redirect if cart is empty
@@ -63,7 +97,7 @@ export default function CheckoutPage() {
     setPreviewing(true);
 
     try {
-      const data = await checkoutPreview({ couponCode: code }, getHeaders());
+      const data = await checkoutPreview({ couponCode: code, redeemPoints: usePoints ? redeemPoints : 0 }, getHeaders());
       
       if (data.coupon) {
         setAppliedCoupon(data.coupon);
@@ -97,7 +131,7 @@ export default function CheckoutPage() {
     setPreviewing(true);
 
     try {
-      const data = await checkoutPreview({}, getHeaders());
+      const data = await checkoutPreview({ redeemPoints: usePoints ? redeemPoints : 0 }, getHeaders());
       setPreview(data);
     } catch (err) {
       setPreviewError(err.response?.data?.error || 'Không thể tải preview');
@@ -112,6 +146,14 @@ export default function CheckoutPage() {
       loadPreview();
     }
   }, [items.length]);
+
+  // Recalculate preview when points usage changes
+  useEffect(() => {
+    if (items.length > 0) {
+      loadPreview();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usePoints, redeemPoints]);
 
   /**
    * Submit checkout
@@ -129,15 +171,30 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     try {
-      const result = await checkoutConfirm({
-        email,
-        address: {
-          fullName,
+      // If user is logged in and using saved address, send addressId
+      // Otherwise, send address object
+      const confirmData = {
+        email: user ? user.email : email,
+        couponCode: couponCode || undefined,
+        redeemPoints: usePoints ? redeemPoints : 0
+      };
+
+      if (user && selectedAddressId && !useNewAddress) {
+        confirmData.addressId = selectedAddressId;
+      } else {
+        confirmData.address = {
+          label: useNewAddress ? 'Địa chỉ mới' : addresses.find(a => a._id === selectedAddressId)?.label || 'Địa chỉ giao hàng',
+          recipient: fullName,
           phone,
-          address,
-          city
-        }
-      }, getHeaders());
+          line1: address,
+          line2: '',
+          city,
+          district: '',
+          ward: ''
+        };
+      }
+
+      const result = await checkoutConfirm(confirmData, getHeaders());
 
       // Clear cart
       await clear();
@@ -146,7 +203,8 @@ export default function CheckoutPage() {
       navigate('/thank-you', { 
         state: { 
           orderId: result.order._id,
-          email: result.order.email 
+          email: result.order.email,
+          order: result.order
         } 
       });
     } catch (err) {
@@ -206,6 +264,47 @@ export default function CheckoutPage() {
               <h2 className="text-xl font-semibold text-slate-900 mb-4">
                 Thông tin giao hàng
               </h2>
+              
+              {/* Address Selector (if logged in) */}
+              {user && addresses.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Chọn địa chỉ đã lưu
+                  </label>
+                  <select
+                    value={useNewAddress ? 'new' : selectedAddressId}
+                    onChange={(e) => {
+                      if (e.target.value === 'new') {
+                        setUseNewAddress(true);
+                        setSelectedAddressId('');
+                        setFullName('');
+                        setPhone('');
+                        setAddress('');
+                        setCity('');
+                      } else {
+                        setUseNewAddress(false);
+                        setSelectedAddressId(e.target.value);
+                        const selectedAddr = addresses.find(a => a._id === e.target.value);
+                        if (selectedAddr) {
+                          setFullName(selectedAddr.recipient);
+                          setPhone(selectedAddr.phone);
+                          setAddress(selectedAddr.line1 + (selectedAddr.line2 ? `, ${selectedAddr.line2}` : ''));
+                          setCity(selectedAddr.city);
+                        }
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {addresses.map(addr => (
+                      <option key={addr._id} value={addr._id}>
+                        {addr.label} {addr.isDefault && '(Mặc định)'} - {addr.line1}, {addr.city}
+                      </option>
+                    ))}
+                    <option value="new">+ Thêm địa chỉ mới</option>
+                  </select>
+                </div>
+              )}
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -324,10 +423,26 @@ export default function CheckoutPage() {
                     <span>Tạm tính</span>
                     <span>${preview.subtotal.toLocaleString()}</span>
                   </div>
+                  {/* Tax */}
+                  <div className="flex justify-between">
+                    <span>Thuế (10%)</span>
+                    <span>${(preview.tax || 0).toLocaleString()}</span>
+                  </div>
+                  {/* Shipping */}
+                  <div className="flex justify-between">
+                    <span>Vận chuyển</span>
+                    <span>{(preview.shipping || 0) === 0 ? 'Miễn phí' : `$${preview.shipping.toLocaleString()}`}</span>
+                  </div>
                   {preview.discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Giảm giá</span>
                       <span>−${preview.discount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {preview.loyalty && preview.loyalty.applied > 0 && (
+                    <div className="flex justify-between text-purple-600">
+                      <span>Dùng điểm</span>
+                      <span>−${preview.loyalty.applied.toLocaleString()}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-lg text-blue-600 border-t pt-2">
@@ -336,6 +451,39 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               )}
+
+              {/* Loyalty points input */}
+              <div className="border-t pt-4 space-y-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={usePoints}
+                    onChange={(e) => setUsePoints(e.target.checked)}
+                  />
+                  <span>Dùng điểm tích lũy</span>
+                </label>
+
+                {usePoints && (
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={redeemPoints}
+                        onChange={(e) => setRedeemPoints(Math.max(0, Math.floor(Number(e.target.value) || 0)))}
+                        className="w-32 px-3 py-2 border border-slate-300 rounded"
+                        placeholder="Số điểm"
+                      />
+                      {preview?.loyalty && (
+                        <span className="text-xs text-slate-500">
+                          Tối đa: {preview.loyalty.maxAllowed} — Điểm còn lại: {preview.loyalty.remainingPoints}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Submit Button */}
               <button

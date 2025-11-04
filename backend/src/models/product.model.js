@@ -51,11 +51,24 @@ const productSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    default: ""
+    required: [true, 'Product description is required'],
+    minlength: [200, 'Description must be at least 200 characters (~5 lines)'],
+    trim: true
+  },
+  images: {
+    type: [String],
+    required: [true, 'Product images are required'],
+    validate: {
+      validator: function(v) {
+        return Array.isArray(v) && v.length >= 3;
+      },
+      message: 'Product must have at least 3 images'
+    }
   },
   image: {
     type: String,
-    default: ""
+    default: "",
+    // @deprecated - Use 'images' array instead. Kept for backward compatibility.
   },
   rating: {
     type: Number,
@@ -99,6 +112,16 @@ productSchema.pre('validate', function(next) {
   // Capitalize brand
   if (this.brand) {
     this.brand = this.brand.charAt(0).toUpperCase() + this.brand.slice(1).toLowerCase();
+  }
+  
+  // Validate images array
+  if (this.images && this.images.length > 0 && this.images.length < 3) {
+    return next(new Error('Product must have at least 3 images'));
+  }
+  
+  // Validate description length
+  if (this.description && this.description.trim().length < 200) {
+    return next(new Error('Description must be at least 200 characters (~5 lines)'));
   }
   
   next();

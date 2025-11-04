@@ -9,20 +9,27 @@ export default function CartItem({ item }) {
   const { updateQty, remove } = useCart();
   const [updating, setUpdating] = useState(false);
 
-  const { product, qty, priceAtAdd } = item;
+  const { product, qty, priceAtAdd, nameSnapshot, imageSnapshot } = item;
   const lineTotal = priceAtAdd * qty;
+  
+  // Use snapshot if available, otherwise use product data
+  const displayName = nameSnapshot || product?.name || 'Unknown Product';
+  const displayImage = imageSnapshot || product?.images?.[0] || product?.image || null;
+  const displayBrand = product?.brand || '';
 
+  const productId = typeof product === 'object' && product?._id ? product._id : product;
+  
   const handleDecrease = async () => {
     if (updating) return;
     setUpdating(true);
-    await updateQty(product._id, qty - 1);
+    await updateQty(productId, qty - 1);
     setUpdating(false);
   };
 
   const handleIncrease = async () => {
     if (updating) return;
     setUpdating(true);
-    await updateQty(product._id, qty + 1);
+    await updateQty(productId, qty + 1);
     setUpdating(false);
   };
 
@@ -31,7 +38,7 @@ export default function CartItem({ item }) {
     if (!confirm('Xóa sản phẩm này khỏi giỏ hàng?')) return;
     
     setUpdating(true);
-    await remove(product._id);
+    await remove(productId);
     setUpdating(false);
   };
 
@@ -39,10 +46,10 @@ export default function CartItem({ item }) {
     <div className={`flex gap-4 p-4 border rounded-lg bg-white ${updating ? 'opacity-50' : ''}`}>
       {/* Product Image */}
       <div className="w-24 h-24 flex-shrink-0">
-        {product.image ? (
+        {displayImage ? (
           <img 
-            src={product.image} 
-            alt={product.name}
+            src={displayImage} 
+            alt={displayName}
             className="w-full h-full object-cover rounded"
           />
         ) : (
@@ -55,11 +62,13 @@ export default function CartItem({ item }) {
       {/* Product Info */}
       <div className="flex-1 min-w-0">
         <h3 className="font-medium text-slate-900 truncate">
-          {product.name}
+          {displayName}
         </h3>
-        <p className="text-sm text-slate-500 mt-1">
-          {product.brand}
-        </p>
+        {displayBrand && (
+          <p className="text-sm text-slate-500 mt-1">
+            {displayBrand}
+          </p>
+        )}
         <p className="text-lg font-semibold text-blue-600 mt-2">
           ${priceAtAdd.toLocaleString()}
         </p>

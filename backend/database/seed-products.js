@@ -1,10 +1,30 @@
 import mongoose from "mongoose";
 import Product from "../src/models/product.model.js";
 import dotenv from "dotenv";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
-const sampleProducts = [
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Đọc dữ liệu sản phẩm từ file JSON
+async function loadProductsFromJSON() {
+  try {
+    const jsonPath = path.join(__dirname, "products-data.json");
+    const jsonData = await fs.readFile(jsonPath, "utf-8");
+    return JSON.parse(jsonData);
+  } catch (error) {
+    console.error("❌ Lỗi khi đọc file products-data.json:", error.message);
+    return [];
+  }
+}
+
+// Dữ liệu mặc định (fallback) nếu không có file JSON
+const defaultProducts = [
   {
     name: "MacBook Air M2 13-inch",
     brand: "Apple",
@@ -750,17 +770,78 @@ const sampleProducts = [
 
 async function seedProducts() {
   try {
+    // ==========================================
+    // CHỌN NGUỒN DỮ LIỆU THEO THỨ TỰ ƯU TIÊN:
+    // 1. File JSON (products-data.json)
+    // 2. MongoDB hiện tại
+    // 3. Hardcoded default data
+    // ==========================================
+    
+    // Bước 1: Load products từ file JSON nếu có
+    let productsToSeed = await loadProductsFromJSON();
+    
     // Connect to MongoDB
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log("Connected to MongoDB");
+    console.log("✓ Connected to MongoDB");
 
-    // Clear existing products
+    // Bước 2: Nếu không có file JSON, thử lấy từ MongoDB (nếu có data)
+    if (productsToSeed.length === 0) {
+      const existingProducts = await Product.find({}).lean();
+      if (existingProducts.length > 0) {
+        console.log(`✓ Found ${existingProducts.length} products in MongoDB, will use them to re-seed`);
+        // Loại bỏ các field MongoDB internal để có thể insert lại
+        productsToSeed = existingProducts.map(p => {
+          const { _id, __v, createdAt, updatedAt, ...product } = p;
+          return product;
+        });
+      }
+    }
+    
+    // Bước 3: Nếu vẫn không có, dùng default hardcoded data
+    if (productsToSeed.length === 0) {
+      console.log("⚠️  No products found, using default hardcoded data");
+      productsToSeed = defaultProducts;
+    }
+
+    // Lưu ý: Script này sẽ XÓA TẤT CẢ products cũ và seed lại từ đầu
+    // Để backup data, chạy "npm run export:products" trước
     await Product.deleteMany({});
-    console.log("Cleared existing products");
+    console.log("✓ Cleared existing products");
 
-    // Insert sample products
-    const insertedProducts = await Product.insertMany(sampleProducts, { ordered: false });
-    console.log(`Seeded ${insertedProducts.length} products`);
+    // Debug: Check sample products array
+    console.log(`DEBUG: Products to seed count: ${productsToSeed.length}`);
+    if (productsToSeed.length > 0) {
+      console.log(`DEBUG: First product name: ${productsToSeed[0].name}`);
+    }
+
+    // Insert sample products (với validation disabled tạm thời)
+    // Sẽ update images và description ở bước seed:images
+    const insertedProducts = await Product.insertMany(productsToSeed, { 
+      ordered: false,
+      rawResult: true 
+    }).catch(async (err) => {
+      // Nếu validation fail, insert từng product với validation disabled
+      console.log("Validation failed, inserting with validation disabled...");
+      console.log("Error:", err.message);
+      const products = [];
+      for (const product of productsToSeed) {
+        try {
+          const doc = new Product(product);
+          const saved = await doc.save({ validateBeforeSave: false });
+          products.push(saved);
+        } catch (e) {
+          console.error(`Failed to insert ${product.name}:`, e.message);
+        }
+      }
+      console.log(`DEBUG: Manually inserted ${products.length} products`);
+      return products;
+    });
+    
+    console.log("DEBUG: insertedProducts type:", typeof insertedProducts);
+    console.log("DEBUG: insertedProducts:", JSON.stringify(insertedProducts).substring(0, 200));
+    
+    const count = insertedProducts.insertedCount || insertedProducts.length || 0;
+    console.log(`Seeded ${count} products`);
 
     // Create indexes
     await Product.collection.createIndex({ brand: 1 });
@@ -768,16 +849,14 @@ async function seedProducts() {
     await Product.collection.createIndex({ name: "text", description: "text" });
     console.log("Created indexes");
 
-    console.log("Product seeding completed successfully!");
+    console.log("✓ Product seeding completed successfully!");
   } catch (error) {
-    console.error("Error seeding products:", error);
+    console.error("❌ Error seeding products:", error);
   } finally {
     await mongoose.disconnect();
-    console.log("Disconnected from MongoDB");
+    console.log("✓ Disconnected from MongoDB");
   }
 }
 
 // Run seeding if this file is executed directly
 seedProducts();
-
-export default seedProducts;

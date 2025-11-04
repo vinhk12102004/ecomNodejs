@@ -59,12 +59,17 @@ export const UpdateProductSchema = z.object({
 });
 
 export const ListQuerySchema = z.object({
-  page: z.string().transform(val => parseInt(val) || 1).pipe(z.number().int().min(1)).optional().default(1),
-  limit: z.string().transform(val => parseInt(val) || 12).pipe(z.number().int().min(1).max(100)).optional().default(12),
+  page: z.string().transform(val => parseInt(val) || 1).pipe(z.number().int().min(1)).optional().default("1"),
+  limit: z.string().transform(val => parseInt(val) || 12).pipe(z.number().int().min(1).max(100)).optional().default("12"),
   q: z.string().optional(),
-  brand: z.string().optional().transform(val => val ? val.split(',').map(b => b.trim()) : undefined),
+  // Support both string "MSI,Asus" and array ["MSI", "Asus"]
+  brand: z.union([
+    z.string().transform(val => val ? val.split(',').map(b => b.trim()) : undefined),
+    z.array(z.string())
+  ]).optional(),
   minPrice: z.string().transform(val => parseFloat(val) || undefined).pipe(z.number().min(0)).optional(),
   maxPrice: z.string().transform(val => parseFloat(val) || undefined).pipe(z.number().min(0)).optional(),
   minRamGB: z.string().transform(val => parseInt(val) || undefined).pipe(z.number().int().min(1)).optional(),
+  ratingGte: z.string().transform(val => parseFloat(val) || undefined).pipe(z.number().min(0).max(5)).optional(),
   sort: z.string().optional().default("-createdAt")
 });

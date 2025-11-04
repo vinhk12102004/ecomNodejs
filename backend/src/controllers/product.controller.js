@@ -1,8 +1,10 @@
 import Product from "../models/product.model.js";
+import Review from "../models/review.model.js";
+import Rating from "../models/rating.model.js";
 
 export const listProducts = async (req, res, next) => {
   try {
-    const { page, limit, q, brand, minPrice, maxPrice, minRamGB, sort } = req.query;
+    const { page, limit, q, brand, minPrice, maxPrice, minRamGB, ratingGte, sort } = req.query;
     
     // Build filter object
     const filter = {};
@@ -27,6 +29,14 @@ export const listProducts = async (req, res, next) => {
     // RAM filter
     if (minRamGB !== undefined) {
       filter["specs.ramGB"] = { $gte: minRamGB };
+    }
+    
+    // Rating filter (>=3, >=4, or =5)
+    if (ratingGte !== undefined) {
+      const rating = parseFloat(ratingGte);
+      if (!isNaN(rating)) {
+        filter.rating = { $gte: rating };
+      }
     }
     
     // Calculate pagination
@@ -64,8 +74,18 @@ export const getProduct = async (req, res, next) => {
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
-    
-    res.json({ data: product });
+    // Aggregate ratings and reviews count
+    const [ratingAgg, reviewsCount] = await Promise.all([
+      Rating.aggregate([
+        { $match: { product: product._id } },
+        { $group: { _id: "$product", avgStars: { $avg: "$stars" } } }
+      ]),
+      Review.countDocuments({ product: product._id })
+    ]);
+
+    const avgRating = ratingAgg.length ? Math.round(ratingAgg[0].avgStars * 10) / 10 : 0;
+
+    res.json({ data: { ...product, avgRating, reviewsCount } });
   } catch (error) {
     next(error);
   }

@@ -83,7 +83,11 @@ export async function bulkAddItems(req, res) {
     const userId = req.user?.id;
     const guestToken = req.guestToken;
 
-    const result = await cartService.bulkAddItems(items, { userId, guestToken });
+    const result = await cartService.bulkAddItems({ 
+      userId, 
+      guestToken, 
+      items 
+    });
 
     res.status(200).json(result);
   } catch (err) {

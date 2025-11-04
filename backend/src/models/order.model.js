@@ -21,8 +21,12 @@ const orderStatusSchema = new mongoose.Schema(
 const pricingSchema = new mongoose.Schema(
   {
     subtotal: Number,
+    tax: { type: Number, default: 0 },
+    shipping: { type: Number, default: 0 },
     discountValue: { type: Number, default: 0 },
     couponId: { type: mongoose.Schema.Types.ObjectId, ref: "Coupon" },
+    pointsRedeemed: { type: Number, default: 0 },
+    pointsEarned: { type: Number, default: 0 },
     total: Number
   },
   { _id: false }

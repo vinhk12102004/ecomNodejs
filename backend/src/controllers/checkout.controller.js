@@ -5,17 +5,18 @@ import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import Coupon from "../models/coupon.model.js";
 import User from "../models/user.model.js";
+import PointsLedger from "../models/pointsLedger.model.js";
 
 /**
  * POST /checkout/preview
  * Preview order with price breakdown
- * Body: { couponCode? }
+ * Body: { couponCode?, redeemPoints? }
  */
 export async function preview(req, res) {
   try {
     const userId = req.user?.id;
     const guestToken = req.guestToken;
-    const { couponCode } = req.body;
+    const { couponCode, redeemPoints = 0 } = req.body;
 
     // Get cart
     const query = userId ? { userId } : { guestToken };
@@ -74,19 +75,43 @@ export async function preview(req, res) {
       couponId = coupon._id;
     }
 
-    const total = subtotal - discount;
+    // Loyalty points redemption
+    let user = null;
+    let maxRedeemAllowed = 0;
+    let redeemApplied = 0;
+
+    if (userId) {
+      user = await User.findById(userId);
+      const userPoints = user?.totalPoints || 0;
+      const capBySubtotal = Math.floor(subtotal * 0.2);
+      maxRedeemAllowed = Math.max(0, Math.min(userPoints, capBySubtotal));
+      const requested = Math.max(0, Math.floor(redeemPoints || 0));
+      redeemApplied = Math.min(requested, maxRedeemAllowed);
+    }
+
+    // Tax and shipping
+    const tax = Math.round(subtotal * 0.10);
+    const shipping = subtotal > 1000000 ? 0 : 50000;
+
+    const total = subtotal + tax + shipping - discount - redeemApplied;
 
     res.json({
       items,
-      pricing: {
-        subtotal,
-        discount,
-        total
-      },
+      subtotal,
+      tax,
+      shipping,
+      discount,
+      total,
       coupon: couponCode ? {
         code: couponCode.toUpperCase(),
         discountPercent: (await Coupon.findById(couponId))?.discountPercent || 0
-      } : null
+      } : null,
+      loyalty: {
+        requested: Math.max(0, Math.floor(redeemPoints || 0)),
+        applied: redeemApplied,
+        maxAllowed: maxRedeemAllowed,
+        remainingPoints: user ? Math.max(0, (user.totalPoints || 0) - redeemApplied) : 0
+      }
     });
 
   } catch (err) {
@@ -98,13 +123,13 @@ export async function preview(req, res) {
 /**
  * POST /checkout/confirm
  * Create order and complete checkout
- * Body: { email?, couponCode?, address? }
+ * Body: { email?, couponCode?, redeemPoints?, address?, addressId? }
  */
 export async function confirm(req, res) {
   try {
     const userId = req.user?.id;
     const guestToken = req.guestToken;
-    const { email, couponCode, address } = req.body;
+    const { email, couponCode, redeemPoints = 0, address, addressId } = req.body;
 
     // Get cart
     const query = userId ? { userId } : { guestToken };
@@ -168,7 +193,66 @@ export async function confirm(req, res) {
       couponId = coupon._id;
     }
 
-    const total = subtotal - discount;
+    // Loyalty points redemption
+    let user = null;
+    let maxRedeemAllowed = 0;
+    let redeemApplied = 0;
+
+    if (userId) {
+      user = await User.findById(userId);
+      const userPoints = user?.totalPoints || 0;
+      const capBySubtotal = Math.floor(subtotal * 0.2);
+      maxRedeemAllowed = Math.max(0, Math.min(userPoints, capBySubtotal));
+      const requested = Math.max(0, Math.floor(redeemPoints || 0));
+      redeemApplied = Math.min(requested, maxRedeemAllowed);
+    }
+
+    // Tax and shipping
+    const tax = Math.round(subtotal * 0.10);
+    const shipping = subtotal > 1000000 ? 0 : 50000;
+
+    const total = subtotal + tax + shipping - discount - redeemApplied;
+
+    // Handle shipping address
+    let shippingAddress = address;
+    
+    // If user is logged in and addressId is provided, get address from user.addresses
+    if (userId && addressId) {
+      const user = await User.findById(userId);
+      if (user && user.addresses) {
+        const savedAddress = user.addresses.id(addressId);
+        if (savedAddress) {
+          shippingAddress = {
+            label: savedAddress.label,
+            recipient: savedAddress.recipient,
+            phone: savedAddress.phone,
+            line1: savedAddress.line1,
+            line2: savedAddress.line2 || "",
+            city: savedAddress.city,
+            district: savedAddress.district || "",
+            ward: savedAddress.ward || ""
+          };
+        }
+      }
+    } else if (userId && !address && !addressId) {
+      // If logged in but no address provided, try to use default address
+      const user = await User.findById(userId);
+      if (user && user.addresses) {
+        const defaultAddress = user.addresses.find(addr => addr.isDefault);
+        if (defaultAddress) {
+          shippingAddress = {
+            label: defaultAddress.label,
+            recipient: defaultAddress.recipient,
+            phone: defaultAddress.phone,
+            line1: defaultAddress.line1,
+            line2: defaultAddress.line2 || "",
+            city: defaultAddress.city,
+            district: defaultAddress.district || "",
+            ward: defaultAddress.ward || ""
+          };
+        }
+      }
+    }
 
     // Create or find user for guest checkout
     let orderUserId = userId;
@@ -205,8 +289,12 @@ export async function confirm(req, res) {
       items: orderItems,
       pricing: {
         subtotal,
+        tax,
+        shipping,
         discountValue: discount,
         couponId,
+        pointsRedeemed: redeemApplied,
+        pointsEarned: 0,
         total
       },
       totalAmount: total,
@@ -233,6 +321,38 @@ export async function confirm(req, res) {
       );
     }
 
+    // Loyalty: update user points and ledger
+    if (orderUserId) {
+      const pointsEarned = Math.floor(total / 10);
+      if (redeemApplied > 0) {
+        await PointsLedger.create({
+          user: orderUserId,
+          order: order._id,
+          points: redeemApplied,
+          type: 'redeem',
+          description: `Redeemed ${redeemApplied} points on order ${order._id}`,
+        });
+      }
+      if (pointsEarned > 0) {
+        await PointsLedger.create({
+          user: orderUserId,
+          order: order._id,
+          points: pointsEarned,
+          type: 'earn',
+          description: `Earned ${pointsEarned} points from order ${order._id}`,
+        });
+      }
+
+      // Atomically update user's totalPoints and order's pointsEarned
+      await User.findByIdAndUpdate(orderUserId, {
+        $inc: { totalPoints: pointsEarned - redeemApplied }
+      });
+
+      await Order.findByIdAndUpdate(order._id, {
+        $set: { 'pricing.pointsEarned': pointsEarned }
+      });
+    }
+
     // Clear cart
     await cartService.clearCart({ userId, guestToken });
 
@@ -256,7 +376,8 @@ export async function confirm(req, res) {
         pricing: order.pricing,
         totalAmount: order.totalAmount,
         status: order.status,
-        createdAt: order.createdAt
+        createdAt: order.createdAt,
+        statusHistory: order.statusHistory
       },
       message: "Order created successfully"
     });
