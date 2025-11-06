@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { adminListProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct, getVariants } from '../../lib/api';
+import { adminListProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct } from '../../lib/api';
 import Pagination from '../../components/Pagination';
+import VariantsModal from '../../components/VariantsModal';
 
 export default function ProductsList() {
-  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [meta, setMeta] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
   const [loading, setLoading] = useState(true);
@@ -13,6 +12,7 @@ export default function ProductsList() {
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', price: '', images: '', description: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [variantsModal, setVariantsModal] = useState(null);
 
   useEffect(() => {
     loadProducts();
@@ -241,7 +241,7 @@ export default function ProductsList() {
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
                           <button
-                            onClick={() => navigate(`/admin/products/${product._id}/variants`)}
+                            onClick={() => setVariantsModal({ productId: product._id, productName: product.name })}
                             className="px-3 py-1 text-xs border rounded hover:bg-blue-50 text-blue-600"
                           >
                             Variants
@@ -278,6 +278,15 @@ export default function ProductsList() {
             </div>
           )}
         </>
+      )}
+
+      {/* Variants Modal */}
+      {variantsModal && (
+        <VariantsModal
+          productId={variantsModal.productId}
+          productName={variantsModal.productName}
+          onClose={() => setVariantsModal(null)}
+        />
       )}
     </div>
   );

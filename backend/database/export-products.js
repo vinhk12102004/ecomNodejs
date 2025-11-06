@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
-import Product from "../src/models/product.model.js";
 import dotenv from "dotenv";
+import Product from "../src/models/product.model.js";
+import { connectDB } from "../src/config/db.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -17,18 +17,23 @@ const __dirname = path.dirname(__filename);
  */
 async function exportProductsToJSON() {
   try {
-    console.log("🔄 Starting export from MongoDB...");
+    console.log("Starting export from MongoDB...");
     
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log("✓ Connected to MongoDB");
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      console.error("✗ Error: MONGODB_URI is not set in .env file");
+      process.exit(1);
+    }
+    
+    await connectDB(uri);
+    console.log("✓ Connected to MongoDB Atlas");
     
     const products = await Product.find({}).lean();
     console.log(`✓ Found ${products.length} products in database`);
     
     if (products.length === 0) {
       console.log("⚠️  No products found in database to export!");
-      await mongoose.disconnect();
-      return;
+      process.exit(0);
     }
     
     // Loại bỏ các field MongoDB internal (_id, __v, createdAt, updatedAt)
@@ -40,14 +45,12 @@ async function exportProductsToJSON() {
     const jsonPath = path.join(__dirname, "products-data.json");
     await fs.writeFile(jsonPath, JSON.stringify(cleanedProducts, null, 2), "utf-8");
     console.log(`✓ Exported ${cleanedProducts.length} products to products-data.json`);
-    console.log(`📁 File location: ${jsonPath}`);
+    console.log(`File location: ${jsonPath}`);
     
-    await mongoose.disconnect();
-    console.log("✓ Disconnected from MongoDB");
-    console.log("✅ Export completed successfully!");
+    console.log("✓ Export completed successfully!");
+    process.exit(0);
   } catch (error) {
-    console.error("❌ Error exporting products:", error);
-    await mongoose.disconnect();
+    console.error("✗ Error exporting products:", error);
     process.exit(1);
   }
 }

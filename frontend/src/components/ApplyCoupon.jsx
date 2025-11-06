@@ -30,8 +30,8 @@ export default function ApplyCoupon({ onApply, onRemove, currentCoupon = null })
   };
 
   return (
-    <div className="bg-slate-50 border rounded-lg p-4">
-      <h3 className="font-medium text-slate-900 mb-3">
+    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+      <h3 className="font-medium text-white mb-3">
         Mã giảm giá
       </h3>
 
@@ -39,7 +39,7 @@ export default function ApplyCoupon({ onApply, onRemove, currentCoupon = null })
         // Current coupon applied
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg">
+            <div className="flex items-center gap-2 px-3 py-2 bg-green-900/30 border border-green-600 text-green-400 rounded-lg">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
@@ -47,14 +47,14 @@ export default function ApplyCoupon({ onApply, onRemove, currentCoupon = null })
                 {currentCoupon.code}
               </span>
             </div>
-            <span className="text-sm text-slate-600">
+            <span className="text-sm text-gray-400">
               (−{currentCoupon.discountPercent}%)
             </span>
           </div>
           <button
             onClick={handleRemove}
             disabled={applying}
-            className="text-sm text-red-600 hover:text-red-700 hover:underline disabled:opacity-50"
+            className="text-sm text-red-400 hover:text-red-300 hover:underline disabled:opacity-50"
           >
             Xóa
           </button>
@@ -69,7 +69,7 @@ export default function ApplyCoupon({ onApply, onRemove, currentCoupon = null })
             onKeyPress={handleKeyPress}
             placeholder="Nhập mã giảm giá"
             disabled={applying}
-            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <button
             onClick={handleApply}
@@ -83,4 +83,3 @@ export default function ApplyCoupon({ onApply, onRemove, currentCoupon = null })
     </div>
   );
 }
-

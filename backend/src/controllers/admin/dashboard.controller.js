@@ -9,6 +9,11 @@ export async function getSimple(req, res) {
     const totalOrders = await Order.countDocuments();
     const totalProducts = await Product.countDocuments();
 
+    // Calculate new users in last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const newUsers7d = await User.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+
     const revenueAgg = await Order.aggregate([{ $group: { _id: null, total: { $sum: "$totalAmount" } } }]);
     const totalRevenue = revenueAgg[0]?.total || 0;
 
@@ -19,7 +24,7 @@ export async function getSimple(req, res) {
       { $limit: 5 }
     ]);
 
-    res.json({ totalUsers, totalOrders, totalProducts, totalRevenue, bestSellers });
+    res.json({ totalUsers, newUsers7d, totalOrders, totalProducts, totalRevenue, bestSellers });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

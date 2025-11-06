@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useCart from '../hooks/useCart.js';
+import { formatPrice } from '../utils/formatPrice.js';
 
 /**
  * CartItem Component
@@ -43,17 +44,17 @@ export default function CartItem({ item }) {
   };
 
   return (
-    <div className={`flex gap-4 p-4 border rounded-lg bg-white ${updating ? 'opacity-50' : ''}`}>
+    <div className={`flex gap-4 p-5 border-2 border-gray-200 rounded-2xl bg-white shadow-md hover:shadow-lg transition-all ${updating ? 'opacity-50' : ''}`}>
       {/* Product Image */}
-      <div className="w-24 h-24 flex-shrink-0">
+      <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden border-2 border-gray-200">
         {displayImage ? (
           <img 
             src={displayImage} 
             alt={displayName}
-            className="w-full h-full object-cover rounded"
+            className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-slate-100 rounded flex items-center justify-center text-slate-400">
+          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center text-gray-400 text-xs">
             No Image
           </div>
         )}
@@ -61,37 +62,37 @@ export default function CartItem({ item }) {
 
       {/* Product Info */}
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-slate-900 truncate">
+        <h3 className="font-semibold text-gray-900 truncate">
           {displayName}
         </h3>
         {displayBrand && (
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             {displayBrand}
           </p>
         )}
-        <p className="text-lg font-semibold text-blue-600 mt-2">
-          ${priceAtAdd.toLocaleString()}
+        <p className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2">
+          {formatPrice(priceAtAdd)}
         </p>
       </div>
 
       {/* Quantity Controls */}
       <div className="flex flex-col items-end gap-3">
-        <div className="flex items-center gap-2 border rounded-lg">
+        <div className="flex items-center gap-2 border-2 border-gray-300 rounded-xl bg-white shadow-sm overflow-hidden">
           <button
             onClick={handleDecrease}
             disabled={updating || qty <= 1}
-            className="px-3 py-1 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="px-4 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition text-gray-700 font-semibold"
             aria-label="Decrease quantity"
           >
             −
           </button>
-          <span className="px-3 py-1 min-w-[3rem] text-center font-medium">
+          <span className="px-4 py-2 min-w-[3rem] text-center font-semibold text-gray-900 border-x-2 border-gray-300">
             {qty}
           </span>
           <button
             onClick={handleIncrease}
             disabled={updating || qty >= (product.stock || 99)}
-            className="px-3 py-1 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="px-4 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition text-gray-700 font-semibold"
             aria-label="Increase quantity"
           >
             +
@@ -100,9 +101,9 @@ export default function CartItem({ item }) {
 
         {/* Line Total */}
         <div className="text-right">
-          <p className="text-sm text-slate-500">Thành tiền</p>
-          <p className="text-lg font-bold text-slate-900">
-            ${lineTotal.toLocaleString()}
+          <p className="text-sm text-gray-600 font-medium">Thành tiền</p>
+          <p className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            {formatPrice(lineTotal)}
           </p>
         </div>
 
@@ -110,7 +111,7 @@ export default function CartItem({ item }) {
         <button
           onClick={handleRemove}
           disabled={updating}
-          className="text-sm text-red-600 hover:text-red-700 hover:underline disabled:opacity-50"
+          className="text-sm text-red-600 hover:text-red-700 hover:underline disabled:opacity-50 font-medium"
         >
           Xóa
         </button>

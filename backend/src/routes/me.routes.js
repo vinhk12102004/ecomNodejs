@@ -7,6 +7,9 @@ const router = Router();
 // All routes require authentication
 router.use(authGuard());
 
+// Profile management
+router.patch("/", meController.updateProfile);
+
 // Address management
 router.get("/addresses", meController.listAddresses);
 router.post("/addresses", meController.createAddress);

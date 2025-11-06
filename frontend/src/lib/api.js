@@ -19,10 +19,19 @@ api.interceptors.request.use((config) => {
 export const getProducts = (params={}) => api.get("/products", { params }).then(r=>r.data);
 export const getProduct = (id) => api.get(`/products/${id}`).then(r=>r.data);
 export const getVariants = (productId, params={}) => api.get(`/products/${productId}/variants`, { params }).then(r=>r.data);
+export const getReviews = (productId, params={}) => api.get(`/products/${productId}/reviews`, { params }).then(r=>r.data);
+export const createReview = (productId, data) => api.post(`/products/${productId}/reviews`, data).then(r=>r.data);
 
 // Auth/User
 export const getMe = () => api.get('/auth/me').then(r => r.data);
+export const updateProfile = (data) => api.patch('/me', data).then(r => r.data);
+export const signup = (data) => api.post('/auth/signup', data).then(r => r.data);
+export const login = (data) => api.post('/auth/login', data).then(r => r.data);
 export const googleLogin = (idToken) => api.post('/auth/google', { idToken }).then(r => r.data);
+export const forgotPassword = (email) => api.post('/auth/forgot-password', { email }).then(r => r.data);
+export const resetPassword = (token, password) => api.post('/auth/reset-password', { token, password }).then(r => r.data);
+export const logout = () => api.post('/auth/logout').then(r => r.data);
+export const refreshToken = () => api.post('/auth/refresh').then(r => r.data);
 
 // Address Management
 export const getAddresses = () => api.get('/me/addresses').then(r => r.data);

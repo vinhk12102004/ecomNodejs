@@ -7,93 +7,100 @@ import SectionGrid from "../components/SectionGrid";
 
 export default function HomePage(){
   const { data, meta, loading, error, params, setQuery, setPage } = useProducts();
-  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [showAllProducts, setShowAllProducts] = useState(true);
 
   return (
-    <div className="space-y-12">
-      {/* Hero Section */}
-      <section className="text-center py-8 bg-gradient-to-r from-blue-50 to-indigo-50 -mx-6 px-6 rounded-xl">
-        <h1 className="text-4xl font-bold mb-2">🎯 Laptop chất lượng cao</h1>
-        <p className="text-slate-600">Tìm laptop hoàn hảo cho công việc, học tập và giải trí</p>
+    <div className="container mx-auto px-4 py-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
+      {/* Banner Section */}
+      <section className="bg-gradient-to-r from-atlas-blue to-atlas-green mb-8 rounded-2xl overflow-hidden shadow-xl">
+        <div className="relative h-64 md:h-96 flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-r from-atlas-blue/90 to-atlas-green/90"></div>
+          <div className="relative z-10 text-center text-white px-4">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">ASUS TUF GAMING</h1>
+            <p className="text-xl md:text-2xl mb-6 drop-shadow-md">HIGH PERFORMANCE AT AN AFFORDABLE PRICE</p>
+            <button className="px-8 py-3 bg-atlas-lime text-atlas-dark font-bold rounded-2xl hover:bg-atlas-green transition-all shadow-lg hover:shadow-xl">
+              SHOP NOW
+            </button>
+          </div>
+        </div>
       </section>
 
-      {/* New Products Section */}
-      <SectionGrid
-        title="🆕 Sản phẩm mới"
-        query={{ sort: "-createdAt", limit: 8 }}
-        linkTo="/products?sort=-createdAt"
-      />
-
-      {/* Best Sellers Section */}
-      <SectionGrid
-        title="🔥 Bán chạy nhất"
-        query={{ sort: "-rating", limit: 8 }}
-        linkTo="/products?sort=-rating"
-      />
-
-      {/* Gaming Laptops Section */}
-      <SectionGrid
-        title="🎮 Laptop Gaming"
-        query={{ brand: ["MSI", "Asus", "Razer"], limit: 8 }}
-        linkTo="/products?brand=MSI,Asus,Razer"
-      />
-
-      {/* Business Laptops Section */}
-      <SectionGrid
-        title="💼 Laptop Doanh nghiệp"
-        query={{ brand: ["Dell", "HP", "Lenovo"], limit: 8 }}
-        linkTo="/products?brand=Dell,HP,Lenovo"
-      />
-
-      {/* Ultrabooks Section */}
-      <SectionGrid
-        title="✨ Laptop Mỏng nhẹ"
-        query={{ brand: ["Apple", "LG", "Samsung"], limit: 8 }}
-        linkTo="/products?brand=Apple,LG,Samsung"
-      />
-
-      {/* Divider */}
-      <div className="border-t pt-12">
-        <button
-          onClick={() => setShowAllProducts(!showAllProducts)}
-          className="w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition flex items-center justify-center gap-2"
-        >
-          {showAllProducts ? "Ẩn danh sách đầy đủ" : "Xem tất cả sản phẩm với bộ lọc"}
-          <svg 
-            className={`w-5 h-5 transition-transform ${showAllProducts ? "rotate-180" : ""}`} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-      </div>
-
-      {/* All Products with Filters */}
-      {showAllProducts && (
-        <section className="space-y-6">
-          <h2 className="text-2xl font-semibold">Tất cả sản phẩm</h2>
-
+      {/* Products Section with Sidebar */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Sidebar Filters */}
+        <aside className="lg:w-64 flex-shrink-0">
           <Filters params={params} onChange={setQuery} />
+        </aside>
 
-          {loading && <div className="text-slate-500">Đang tải...</div>}
-          {error && <div className="text-rose-600">Lỗi: {error?.error || "unknown"}</div>}
+        {/* Main Products Area */}
+        <div className="flex-1">
+          {/* Top Bar */}
+          <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4 shadow-md">
+            <div className="text-sm text-gray-700 font-semibold">
+              Sản phẩm {((meta.page - 1) * meta.limit) + 1}-{Math.min(meta.page * meta.limit, meta.total)} trong tổng số {meta.total}
+            </div>
+            <div className="flex items-center gap-4">
+              <select 
+                className="bg-white border-2 border-gray-300 text-gray-900 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-atlas-blue shadow-sm"
+                value={params.sort || "-createdAt"}
+                onChange={(e) => setQuery({ sort: e.target.value })}
+              >
+                <option value="-createdAt">Mới nhất</option>
+                <option value="-price">Giá: Cao đến thấp</option>
+                <option value="price">Giá: Thấp đến cao</option>
+                <option value="-rating">Đánh giá</option>
+              </select>
+              <select 
+                className="bg-white border-2 border-gray-300 text-gray-900 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-atlas-blue shadow-sm"
+                value={meta.limit}
+                onChange={(e) => setQuery({ limit: parseInt(e.target.value) })}
+              >
+                <option value="20">Hiển thị: 20</option>
+                <option value="40">Hiển thị: 40</option>
+                <option value="60">Hiển thị: 60</option>
+              </select>
+            </div>
+          </div>
 
-          {!loading && data?.length === 0 && (
-            <div className="text-slate-500">Không có sản phẩm phù hợp.</div>
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-12 text-gray-600">
+              <div className="inline-block w-12 h-12 border-4 border-atlas-blue border-t-transparent rounded-full animate-spin"></div>
+              <p className="mt-4 font-medium">Đang tải...</p>
+            </div>
           )}
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data?.map(p => <ProductCard key={p._id} item={p} />)}
-          </div>
+          {/* Error State */}
+          {error && (
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-400 rounded-2xl p-4 text-red-700 shadow-sm">
+              Lỗi: {error?.error || "unknown"}
+            </div>
+          )}
 
-          <div className="flex justify-center">
-            <Pagination total={meta.total} page={meta.page} limit={meta.limit} onPage={setPage}/>
-          </div>
-        </section>
-      )}
+          {/* Empty State */}
+          {!loading && data?.length === 0 && (
+            <div className="text-center py-12 text-gray-600 font-medium">
+              Không có sản phẩm phù hợp.
+            </div>
+          )}
+
+          {/* Products Grid */}
+          {!loading && data && data.length > 0 && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {data.map(p => <ProductCard key={p._id} item={p} />)}
+              </div>
+
+              {/* Pagination */}
+              {meta.pages > 1 && (
+                <div className="flex justify-center mt-8">
+                  <Pagination total={meta.total} page={meta.page} limit={meta.limit} onPage={setPage}/>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
-

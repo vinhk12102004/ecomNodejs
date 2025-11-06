@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getMe, getAddresses, createAddress, updateAddress, deleteAddress, setDefaultAddress } from '../lib/api';
+import { getMe, updateProfile, getAddresses, createAddress, updateAddress, deleteAddress, setDefaultAddress } from '../lib/api';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -8,6 +8,13 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   
+  // Profile form state
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileFormData, setProfileFormData] = useState({
+    name: ''
+  });
+  const [profileSubmitting, setProfileSubmitting] = useState(false);
+
   // Address form state
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -26,13 +33,23 @@ export default function ProfilePage() {
     let mounted = true;
     setLoading(true);
     Promise.all([
-      getMe().then((u) => { if (mounted) setUser(u); }),
+      getMe().then((u) => { 
+        if (mounted) {
+          setUser(u);
+          setProfileFormData({ name: u.name || '' });
+        }
+      }),
       getAddresses().then((r) => { if (mounted) setAddresses(r.addresses || []); })
     ])
       .catch((e) => { if (mounted) setError(e.response?.data?.error || 'Không thể tải dữ liệu'); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
+
+  const resetProfileForm = () => {
+    setEditingProfile(false);
+    setProfileFormData({ name: user?.name || '' });
+  };
 
   const resetForm = () => {
     setEditingId(null);
@@ -46,6 +63,20 @@ export default function ProfilePage() {
       district: '',
       ward: ''
     });
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    setProfileSubmitting(true);
+    try {
+      const updatedUser = await updateProfile(profileFormData);
+      setUser(updatedUser);
+      setEditingProfile(false);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Lỗi khi cập nhật thông tin');
+    } finally {
+      setProfileSubmitting(false);
+    }
   };
 
   const handleEdit = (addr) => {
@@ -112,49 +143,123 @@ export default function ProfilePage() {
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto p-4 bg-red-50 border border-red-200 rounded">
-        <p className="text-red-700 text-sm">{error}</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto p-4 bg-red-900/30 border border-red-600 rounded">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Hồ sơ</h1>
-        <p className="text-slate-600">Xin chào, {user?.name || user?.email}</p>
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b">
-        <div className="flex gap-4">
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`px-4 py-2 font-medium border-b-2 transition ${
-              activeTab === 'profile' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-600'
-            }`}
-          >
-            Thông tin
-          </button>
-          <button
-            onClick={() => setActiveTab('addresses')}
-            className={`px-4 py-2 font-medium border-b-2 transition ${
-              activeTab === 'addresses' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-600'
-            }`}
-          >
-            Địa chỉ ({addresses.length})
-          </button>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Hồ sơ</h1>
+          <p className="text-gray-400">Xin chào, {user?.name || user?.email}</p>
         </div>
-      </div>
 
-      {/* Profile Tab */}
-      {activeTab === 'profile' && (
-        <div className="bg-white border rounded p-6">
-          <h2 className="text-lg font-semibold mb-2">Điểm thưởng</h2>
-          <p className="text-3xl font-bold text-purple-700">{user?.totalPoints || 0}</p>
-          <p className="text-xs text-slate-500 mt-1">1 điểm = 1₫, tối đa dùng 20% giá trị đơn hàng</p>
+        {/* Tabs */}
+        <div className="border-b border-gray-800">
+          <div className="flex gap-4">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-4 py-2 font-medium border-b-2 transition ${
+                activeTab === 'profile' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-400 hover:text-white'
+              }`}
+            >
+              Thông tin
+            </button>
+            <button
+              onClick={() => setActiveTab('addresses')}
+              className={`px-4 py-2 font-medium border-b-2 transition ${
+                activeTab === 'addresses' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-400 hover:text-white'
+              }`}
+            >
+              Địa chỉ ({addresses.length})
+            </button>
+          </div>
         </div>
-      )}
+
+        {/* Profile Tab */}
+        {activeTab === 'profile' && (
+          <div className="space-y-6">
+            {/* Profile Information Form */}
+            <div className="bg-gray-900 border border-gray-800 rounded p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">Thông tin cá nhân</h2>
+                {!editingProfile && (
+                  <button
+                    onClick={() => setEditingProfile(true)}
+                    className="px-4 py-2 text-sm border border-gray-700 rounded hover:bg-gray-800 text-gray-300"
+                  >
+                    Chỉnh sửa
+                  </button>
+                )}
+              </div>
+              
+              {editingProfile ? (
+                <form onSubmit={handleProfileSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-300">Email</label>
+                    <input
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-400 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Email không thể thay đổi</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-300">Tên</label>
+                    <input
+                      type="text"
+                      value={profileFormData.name}
+                      onChange={(e) => setProfileFormData({ name: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+                      placeholder="Nhập tên của bạn"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={profileSubmitting}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {profileSubmitting ? 'Đang lưu...' : 'Lưu'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetProfileForm}
+                      className="px-4 py-2 border border-gray-700 rounded hover:bg-gray-800 text-gray-300"
+                    >
+                      Hủy
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400">Email</label>
+                    <p className="text-white">{user?.email || 'Chưa có'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400">Tên</label>
+                    <p className="text-white">{user?.name || 'Chưa có'}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Loyalty Points */}
+            <div className="bg-gray-900 border border-gray-800 rounded p-6">
+              <h2 className="text-lg font-semibold mb-2 text-white">Điểm thưởng</h2>
+              <p className="text-3xl font-bold text-purple-400">{user?.totalPoints || 0}</p>
+              <p className="text-xs text-gray-400 mt-1">1 điểm = 1₫, tối đa dùng 20% giá trị đơn hàng</p>
+            </div>
+          </div>
+        )}
 
       {/* Addresses Tab */}
       {activeTab === 'addresses' && (
@@ -321,6 +426,7 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

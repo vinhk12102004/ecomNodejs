@@ -1,6 +1,31 @@
 import User from "../models/user.model.js";
 
 /**
+ * PATCH /me
+ * Update current user profile (name)
+ * Body: { name? }
+ */
+export async function updateProfile(req, res) {
+  try {
+    const { name } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    
+    // Update name if provided
+    if (name !== undefined) {
+      user.name = name.trim();
+    }
+    
+    await user.save();
+    
+    res.json(user.toJSON());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+/**
  * GET /me/addresses
  * List all addresses for current user
  */

@@ -21,6 +21,9 @@ const userSchema = new mongoose.Schema({
   totalPoints: { type: Number, default: 0 },
   oauthProvider: { type: String, enum: ["google", "facebook"], default: null },
   oauthSub: { type: String, default: null, index: true },
+  // Password reset token (one-time use)
+  resetToken: { type: String, default: null },
+  resetTokenExpires: { type: Date, default: null },
   addresses: [addressSchema]
 }, { timestamps: true });
 

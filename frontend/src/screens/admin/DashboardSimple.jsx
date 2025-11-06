@@ -52,9 +52,6 @@ export default function DashboardSimple() {
 
   if (!data) return null;
 
-  // Calculate new users in last 7 days (mock for now, backend doesn't provide this)
-  const newUsers7d = 0; // Would need backend to calculate
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -82,7 +79,7 @@ export default function DashboardSimple() {
             <h3 className="text-sm font-medium text-slate-600">Người dùng mới (7 ngày)</h3>
             <span className="text-2xl">🆕</span>
           </div>
-          <p className="text-3xl font-bold text-green-600">{newUsers7d}</p>
+          <p className="text-3xl font-bold text-green-600">{data.newUsers7d || 0}</p>
         </div>
 
         <div className="bg-white border rounded-lg p-6">

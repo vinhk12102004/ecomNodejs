@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "seed:products": "node database/seed-products.js",
-    "seed:variants": "node database/seed-variants.js",
-    "seed:images": "node database/seed-products-images.js",
-    "export:products": "node database/export-products.js"
+    "seed": "node database/seed.js all",
+    "seed:products": "node database/seed.js products",
+    "seed:images": "node database/seed.js images",
+    "seed:variants": "node database/seed.js variants",
+    "export:products": "node database/export-products.js",
+    "import:products": "node database/import-products.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

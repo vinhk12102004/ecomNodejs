@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const BRANDS = ["Apple","Dell","Asus","HP","Lenovo","MSI","Acer"];
+const BRANDS = ["Apple","Dell","Asus","HP","Lenovo","MSI","Acer","Razer","LG","Samsung"];
 
 export default function Filters({ params, onChange }){
   const [brand, setBrand] = useState(params.brand || "");
@@ -19,94 +19,134 @@ export default function Filters({ params, onChange }){
     setSort(params.sort||"-createdAt"); 
   },[params]);
 
+  const activeFiltersCount = [brand, q, minPrice, maxPrice, ratingGte].filter(Boolean).length;
+
   return (
-    <div className="grid md:grid-cols-6 gap-3">
-      {/* Search Input */}
-      <input 
-        className="border rounded-lg px-3 py-2" 
-        placeholder="Tìm kiếm (vd: MacBook)" 
-        value={q} 
-        onChange={e=>setQ(e.target.value)}
-      />
-      
+    <div className="bg-gradient-to-br from-atlas-dark to-atlas-gray-dark rounded-2xl p-6 space-y-6 shadow-lg">
+      <div className="flex items-center justify-between">
+        <h2 className="text-white text-xl font-bold">Bộ lọc</h2>
+        {activeFiltersCount > 0 && (
+          <button 
+            onClick={() => {
+              setQ("");
+              setBrand("");
+              setMinPrice("");
+              setMaxPrice("");
+              setRatingGte("");
+              setSort("-createdAt");
+              onChange({ 
+                q: undefined, 
+                brand: undefined, 
+                minPrice: undefined, 
+                maxPrice: undefined,
+                ratingGte: undefined,
+                sort: "-createdAt" 
+              });
+            }}
+            className="px-4 py-2 text-sm bg-atlas-lime text-atlas-dark rounded-xl hover:bg-atlas-green transition-all font-semibold shadow-md"
+          >
+            Xóa bộ lọc
+          </button>
+        )}
+      </div>
+
+      {/* Search */}
+      <div>
+        <label className="block text-white text-sm font-semibold mb-2">Tìm kiếm</label>
+        <input 
+          className="w-full px-4 py-3 bg-white/20 border-2 border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:border-white focus:bg-white/30 shadow-sm" 
+          placeholder="Tìm kiếm..." 
+          value={q} 
+          onChange={e=>setQ(e.target.value)}
+        />
+      </div>
+
       {/* Brand Filter */}
-      <select className="border rounded-lg px-3 py-2" value={brand} onChange={e=>setBrand(e.target.value)}>
-        <option value="">Tất cả hãng</option>
-        {BRANDS.map(b=><option key={b} value={b}>{b}</option>)}
-      </select>
-      
+      <div>
+        <label className="block text-white text-sm font-semibold mb-2">Thương hiệu</label>
+        <div className="space-y-2 max-h-48 overflow-y-auto">
+          {BRANDS.map(b => (
+            <label key={b} className="flex items-center text-white text-sm cursor-pointer hover:bg-white/20 rounded-xl px-3 py-2 transition">
+              <input
+                type="checkbox"
+                checked={brand === b}
+                onChange={(e) => setBrand(e.target.checked ? b : "")}
+                className="mr-3 w-4 h-4 text-blue-600 rounded"
+              />
+              <span className="font-medium">{b}</span>
+            </label>
+          ))}
+        </div>
+        <button 
+          onClick={() => setBrand("")}
+          className="mt-2 text-white text-xs underline hover:no-underline font-medium"
+        >
+          Tất cả thương hiệu
+        </button>
+      </div>
+
       {/* Price Range */}
-      <input 
-        className="border rounded-lg px-3 py-2" 
-        type="number" 
-        placeholder="Giá từ" 
-        value={minPrice} 
-        onChange={e=>setMinPrice(e.target.value)} 
-      />
-      <input 
-        className="border rounded-lg px-3 py-2" 
-        type="number" 
-        placeholder="Giá đến" 
-        value={maxPrice} 
-        onChange={e=>setMaxPrice(e.target.value)} 
-      />
-      
+      <div>
+        <label className="block text-white text-sm font-semibold mb-2">Giá (VNĐ)</label>
+        <div className="space-y-2">
+          <input 
+            className="w-full px-4 py-3 bg-white/20 border-2 border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:border-white focus:bg-white/30 shadow-sm" 
+            type="number" 
+            placeholder="Giá tối thiểu" 
+            value={minPrice} 
+            onChange={e=>setMinPrice(e.target.value)} 
+          />
+          <input 
+            className="w-full px-4 py-3 bg-white/20 border-2 border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:border-white focus:bg-white/30 shadow-sm" 
+            type="number" 
+            placeholder="Giá tối đa" 
+            value={maxPrice} 
+            onChange={e=>setMaxPrice(e.target.value)} 
+          />
+        </div>
+      </div>
+
       {/* Rating Filter */}
-      <select className="border rounded-lg px-3 py-2" value={ratingGte} onChange={e=>setRatingGte(e.target.value)}>
-        <option value="">Tất cả đánh giá</option>
-        <option value="5">⭐ 5 sao</option>
-        <option value="4">⭐ 4 sao trở lên</option>
-        <option value="3">⭐ 3 sao trở lên</option>
-      </select>
-      
-      {/* Sort Options */}
-      <select className="border rounded-lg px-3 py-2" value={sort} onChange={e=>setSort(e.target.value)}>
-        <option value="-createdAt">Mới nhất</option>
-        <option value="-price">Giá giảm dần</option>
-        <option value="price">Giá tăng dần</option>
-        <option value="name">Tên A → Z</option>
-        <option value="-name">Tên Z → A</option>
-        <option value="-rating">Đánh giá cao nhất</option>
-      </select>
-      
-      {/* Action Buttons */}
-      <div className="md:col-span-6 flex gap-2">
-        <button 
-          className="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition" 
-          onClick={()=>onChange({ 
-            q: q || undefined, 
-            brand: brand || undefined, 
-            minPrice: minPrice || undefined, 
-            maxPrice: maxPrice || undefined,
-            ratingGte: ratingGte || undefined,
-            sort 
-          })}
+      <div>
+        <label className="block text-white text-sm font-semibold mb-2">Đánh giá</label>
+        <select 
+          className="w-full px-4 py-3 bg-white/20 border-2 border-white/30 rounded-xl text-white focus:outline-none focus:border-white focus:bg-white/30 shadow-sm" 
+          value={ratingGte} 
+          onChange={e=>setRatingGte(e.target.value)}
         >
-          Áp dụng
-        </button>
-        <button 
-          className="px-4 py-2 rounded-lg border hover:bg-gray-50 transition" 
-          onClick={()=>{
-            setQ("");
-            setBrand("");
-            setMinPrice("");
-            setMaxPrice("");
-            setRatingGte("");
-            setSort("-createdAt");
-            onChange({ 
-              q: undefined, 
-              brand: undefined, 
-              minPrice: undefined, 
-              maxPrice: undefined,
-              ratingGte: undefined,
-              sort: "-createdAt" 
-            });
-          }}
-        >
-          Xoá lọc
-        </button>
+          <option value="">Tất cả đánh giá</option>
+          <option value="5">⭐ 5 Sao</option>
+          <option value="4">⭐ 4+ Sao</option>
+          <option value="3">⭐ 3+ Sao</option>
+        </select>
+      </div>
+
+      {/* Apply Button */}
+      <button 
+        className="w-full px-4 py-3 bg-atlas-lime hover:bg-atlas-green text-atlas-dark font-bold rounded-2xl transition-all shadow-lg" 
+        onClick={()=>onChange({ 
+          q: q || undefined, 
+          brand: brand || undefined, 
+          minPrice: minPrice || undefined, 
+          maxPrice: maxPrice || undefined,
+          ratingGte: ratingGte || undefined,
+          sort 
+        })}
+      >
+        Áp dụng bộ lọc {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+      </button>
+
+      {/* Compare Products */}
+      <div className="pt-4 border-t-2 border-white/30">
+        <h3 className="text-white text-sm font-semibold mb-2">So sánh sản phẩm</h3>
+        <p className="text-white/80 text-xs">Chưa có sản phẩm để so sánh.</p>
+      </div>
+
+      {/* Wish List */}
+      <div className="pt-4 border-t-2 border-white/30">
+        <h3 className="text-white text-sm font-semibold mb-2">Danh sách yêu thích</h3>
+        <p className="text-white/80 text-xs">Chưa có sản phẩm trong danh sách yêu thích.</p>
       </div>
     </div>
   );
 }
-

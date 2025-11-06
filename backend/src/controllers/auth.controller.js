@@ -1,4 +1,5 @@
 import * as authService from "../services/auth.service.js";
+import * as emailService from "../services/email.service.js";
 import User from "../models/user.model.js";
 import { OAuth2Client } from "google-auth-library";
 
@@ -12,15 +13,29 @@ function setRefreshCookie(res, token) {
   });
 }
 
+/**
+ * Signup with auto-generated password and one-time reset link
+ * User will be automatically logged in after signup
+ * User will receive welcome email with reset password link
+ */
 export async function signup(req, res) {
   try {
-    const { email, password, name } = req.body;
+    const { email, name } = req.body;
     
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
     }
     
-    const user = await authService.signup({ email, password, name });
+    // Signup with auto-generated password and reset token
+    const { user, resetToken } = await authService.signup({ email, name });
+    
+    // Send welcome email with reset password link (async, don't wait)
+    emailService.sendWelcomeEmail(user.email, resetToken, user.name).catch(err => {
+      console.error('Failed to send welcome email:', err);
+      // Don't fail the signup if email fails
+    });
+    
+    // Auto-login after signup
     const payload = { id: user._id.toString(), email: user.email, role: user.role };
     const { accessToken, refreshToken } = authService.signTokens(payload);
     
@@ -28,7 +43,8 @@ export async function signup(req, res) {
     
     res.status(201).json({
       user: user.toJSON(),
-      accessToken
+      accessToken,
+      message: "Account created successfully. Please check your email to set your password."
     });
   } catch (err) {
     if (err.message === "EMAIL_TAKEN") {
@@ -103,6 +119,67 @@ export async function me(req, res) {
  * POST /auth/google
  * Body: { idToken }
  */
+/**
+ * Forgot password - send reset password link via email
+ */
+export async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    
+    // Generate reset token (don't reveal if user exists or not for security)
+    const result = await authService.forgotPassword(email);
+    
+    // Always return success message (don't reveal if user exists)
+    if (result) {
+      // Send reset password email (async, don't wait)
+      emailService.sendPasswordResetEmail(email, result.resetToken).catch(err => {
+        console.error('Failed to send password reset email:', err);
+        // Don't fail if email fails
+      });
+    }
+    
+    // Always return success (security best practice - don't reveal if email exists)
+    res.json({ 
+      message: "If an account with that email exists, a password reset link has been sent to your email."
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+/**
+ * Reset password using reset token from email
+ */
+export async function resetPassword(req, res) {
+  try {
+    const { token, password } = req.body;
+    
+    if (!token || !password) {
+      return res.status(400).json({ error: "Token and password are required" });
+    }
+    
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+    
+    // Reset password using token
+    const user = await authService.resetPassword(token, password);
+    
+    res.json({ 
+      message: "Password reset successfully. You can now login with your new password."
+    });
+  } catch (err) {
+    if (err.message === "INVALID_OR_EXPIRED_TOKEN") {
+      return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+    res.status(500).json({ error: err.message });
+  }
+}
+
 export async function googleLogin(req, res) {
   try {
     const { idToken } = req.body || {};

@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 
 // Create transporter based on environment variables
 const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST || "localhost",
+  host: process.env.MAIL_HOST || "mailhog", // Use 'mailhog' service name in Docker
   port: parseInt(process.env.MAIL_PORT || "1025"), // Mailhog default port
   secure: false, // true for 465, false for other ports
   auth: process.env.MAIL_USER ? {
@@ -147,7 +147,94 @@ function generateOrderConfirmationHTML(order) {
 }
 
 /**
- * Send password reset email
+ * Send welcome email with one-time reset password link (for signup)
+ */
+export async function sendWelcomeEmail(to, resetToken, userName = null) {
+  try {
+    const resetURL = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+    const greeting = userName ? `Hi ${userName},` : 'Hi there,';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to Ecom Laptop</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">💻 Ecom Laptop</h1>
+          <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Welcome to our store!</p>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+          <h2 style="color: #667eea; margin-top: 0;">Welcome to Ecom Laptop!</h2>
+          
+          <p>${greeting}</p>
+          <p>Thank you for registering with us. Your account has been created successfully!</p>
+
+          <div style="background: #fff3cd; padding: 20px; border-left: 4px solid #ffc107; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 0; color: #856404;">
+              <strong>🔐 Set Your Password:</strong><br>
+              To complete your registration, please set your password by clicking the link below. This is a one-time link that will expire in 24 hours.
+            </p>
+          </div>
+
+          <p style="margin: 30px 0; text-align: center;">
+            <a href="${resetURL}" style="background: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px;">Set Your Password</a>
+          </p>
+
+          <p style="color: #666; font-size: 14px;">
+            <strong>Important:</strong>
+          </p>
+          <ul style="color: #666; font-size: 14px;">
+            <li>This link will expire in <strong>24 hours</strong></li>
+            <li>This is a <strong>one-time use</strong> link - once you set your password, this link will no longer work</li>
+            <li>If the link expires, you can use the "Forgot Password" feature on the login page to receive a new reset link</li>
+          </ul>
+
+          <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 5px;">
+            <p style="margin: 0; color: #666; font-size: 14px;">
+              <strong>What's next?</strong><br>
+              After setting your password, you'll be able to login and start shopping!
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; text-align: center; color: #666; font-size: 14px;">
+            <p>Need help? Contact us at <a href="mailto:support@ecomlaptop.com" style="color: #667eea;">support@ecomlaptop.com</a></p>
+            <p style="margin-top: 20px;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Visit Our Store</a>
+            </p>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+          <p>© ${new Date().getFullYear()} Ecom Laptop. All rights reserved.</p>
+          <p>This is an automated email, please do not reply.</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const mailOptions = {
+      from: process.env.MAIL_FROM || '"Ecom Laptop" <noreply@ecomlaptop.com>',
+      to,
+      subject: 'Welcome to Ecom Laptop - Set Your Password',
+      html
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Welcome email sent:', info.messageId);
+    return info;
+  } catch (err) {
+    console.error('Failed to send welcome email:', err);
+    throw err;
+  }
+}
+
+/**
+ * Send password reset email (for forgot password)
  */
 export async function sendPasswordResetEmail(to, resetToken) {
   try {
@@ -158,18 +245,48 @@ export async function sendPasswordResetEmail(to, resetToken) {
       <html>
       <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Reset Password</title>
       </head>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #667eea;">Reset Your Password</h2>
-        <p>You requested to reset your password. Click the button below to proceed:</p>
-        <p style="margin: 30px 0;">
-          <a href="${resetURL}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
-        </p>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you didn't request this, please ignore this email.</p>
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-        <p style="color: #999; font-size: 12px;">© ${new Date().getFullYear()} Ecom Laptop</p>
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">💻 Ecom Laptop</h1>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+          <h2 style="color: #667eea; margin-top: 0;">Reset Your Password</h2>
+          <p>Hi there,</p>
+          <p>You requested to reset your password. Click the button below to proceed:</p>
+
+          <div style="background: #fff3cd; padding: 20px; border-left: 4px solid #ffc107; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 0; color: #856404;">
+              <strong>🔐 Password Reset:</strong><br>
+              This is a one-time link that will expire in 1 hour. Once you reset your password, this link will no longer work.
+            </p>
+          </div>
+
+          <p style="margin: 30px 0; text-align: center;">
+            <a href="${resetURL}" style="background: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px;">Reset Password</a>
+          </p>
+
+          <p style="color: #666; font-size: 14px;">
+            <strong>Important:</strong>
+          </p>
+          <ul style="color: #666; font-size: 14px;">
+            <li>This link will expire in <strong>1 hour</strong></li>
+            <li>This is a <strong>one-time use</strong> link</li>
+            <li>If you didn't request this, please ignore this email</li>
+          </ul>
+
+          <div style="margin-top: 30px; text-align: center; color: #666; font-size: 14px;">
+            <p>Need help? Contact us at <a href="mailto:support@ecomlaptop.com" style="color: #667eea;">support@ecomlaptop.com</a></p>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+          <p>© ${new Date().getFullYear()} Ecom Laptop. All rights reserved.</p>
+          <p>This is an automated email, please do not reply.</p>
+        </div>
       </body>
       </html>
     `;
@@ -192,6 +309,7 @@ export async function sendPasswordResetEmail(to, resetToken) {
 
 export default {
   sendOrderConfirmation,
+  sendWelcomeEmail,
   sendPasswordResetEmail
 };
 
