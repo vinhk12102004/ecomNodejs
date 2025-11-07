@@ -92,11 +92,12 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 - **Trạng thái**: ✅ Hoàn thành
 - **Mô tả**: Pagination được áp dụng trên tất cả trang hiển thị sản phẩm
 
-### ❌ 3.6 - Hiển thị số trang ngay cả khi chỉ có 1 trang
-- **Trạng thái**: ❌ Chưa hoàn thành
-- **File**: `frontend/src/components/Pagination.jsx` (dòng 3)
-- **Mô tả**: Hiện tại code có `if (pages <= 1) return null;` - cần sửa để hiển thị ngay cả khi chỉ có 1 trang
-- **Cần làm**: Xóa hoặc comment dòng `if (pages <= 1) return null;`
+### ✅ 3.6 - Hiển thị số trang dù chỉ có 1 trang
+- **File**: 
+  - `backend/src/controllers/product.controller.js` (đã thêm `pages`)
+  - `frontend/src/components/Pagination.jsx` (đã bỏ `if (pages <= 1) return null;`)
+  - `frontend/src/screens/HomePage.jsx` (đã bỏ điều kiện `meta.pages > 1`)
+- **Trạng thái**: ✅ Hoàn thành
 
 ---
 
@@ -408,12 +409,11 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 
 ### ❌ Cần bổ sung:
 1. **Listview/Gridview toggle** (3.2) - ❌ Chưa có
-2. **Pagination hiển thị ngay cả khi chỉ có 1 trang** (3.6) - ❌ Chưa sửa
-3. **Categories và Tags** (3.4) - ❌ Chưa có trong Product model
-4. **Sorting theo tên (A-Z, Z-A)** (5.1) - ❌ Chưa có
-5. **SectionGrid cho New Products, Best Sellers** (1.2) - ❌ Chưa sử dụng trên HomePage
-6. **Team Collaboration evidence** (12.2) - ⚠️ Cần kiểm tra GitHub Insights
-7. **Horizontal Scaling** (12.4) - ❌ Chưa có
+2. **Categories và Tags** (3.4) - ❌ Chưa có trong Product model
+3. **Sorting theo tên (A-Z, Z-A)** (5.1) - ❌ Chưa có
+4. **SectionGrid cho New Products, Best Sellers** (1.2) - ❌ Chưa sử dụng trên HomePage
+5. **Team Collaboration evidence** (12.2) - ⚠️ Cần kiểm tra GitHub Insights
+6. **Horizontal Scaling** (12.4) - ❌ Chưa có
 
 ### ❌ Chưa hoàn thành:
 1. **Listview/Gridview toggle** (3.2)
@@ -424,10 +424,9 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 ## 🎯 Ưu tiên sửa chữa
 
 ### High Priority:
-1. ❌ Pagination hiển thị ngay cả khi chỉ có 1 trang (3.6)
-2. ❌ SectionGrid cho New Products, Best Sellers trên HomePage (1.2)
-3. ❌ Sorting theo tên (A-Z, Z-A) (5.1)
-4. ❌ Categories và Tags trong Product model (3.4)
+1. ❌ SectionGrid cho New Products, Best Sellers trên HomePage (1.2)
+2. ❌ Sorting theo tên (A-Z, Z-A) (5.1)
+3. ❌ Categories và Tags trong Product model (3.4)
 
 ### Medium Priority:
 1. ⚠️ Listview/Gridview toggle
@@ -438,5 +437,5 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 
 ---
 
-**Cập nhật lần cuối**: 2025-11-06
+**Cập nhật lần cuối**: 2025-11-07 by Hoàng Vũ
 

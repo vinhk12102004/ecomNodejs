@@ -92,11 +92,14 @@ export default function HomePage(){
               </div>
 
               {/* Pagination */}
-              {meta.pages > 1 && (
-                <div className="flex justify-center mt-8">
-                  <Pagination total={meta.total} page={meta.page} limit={meta.limit} onPage={setPage}/>
-                </div>
-              )}
+              <div className="flex justify-center mt-10 mb-16">
+                <Pagination
+                  total={meta?.total}
+                  page={meta?.page}
+                  limit={meta?.limit}
+                  onPage={setPage}
+                />
+              </div>
             </>
           )}
         </div>
