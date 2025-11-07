@@ -61,15 +61,14 @@ export default function SectionGrid({ title, query, linkTo }) {
   if (products.length === 0) {
     return null; // Don't show empty sections
   }
-
-  return (
-    <section className="mb-12">
+    return (
+    <section className="mb-12 overflow-hidden relative">
       {/* Section Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">{title}</h2>
         {linkTo && (
-          <Link 
-            to={linkTo} 
+          <Link
+            to={linkTo}
             className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all"
           >
             Xem tất cả
@@ -80,11 +79,21 @@ export default function SectionGrid({ title, query, linkTo }) {
         )}
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {products.map((product) => (
-          <ProductCard key={product._id} item={product} />
-        ))}
+      {/* Auto-scroll Product Row */}
+      <div className="relative overflow-hidden">
+        <div
+          className="flex gap-4 slide-left"
+          style={{
+            width: `${products.length * 320}px`,
+            animationDuration: `${products.length * 3}s`,
+          }}
+        >
+          {products.concat(products).map((product, i) => (
+            <div key={i} className="flex-shrink-0 w-72">
+              <ProductCard item={product} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

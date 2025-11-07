@@ -12,12 +12,15 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 - **File**: `frontend/src/screens/HomePage.jsx`
 - **Mô tả**: Trang chủ hiển thị banner và danh sách sản phẩm
 
-### ❌ 1.2 - Hiển thị sản phẩm theo categories
-- **Trạng thái**: ❌ Chưa hoàn thành
-- **File**: `frontend/src/screens/HomePage.jsx`
-- **Mô tả**: Cần hiển thị "New Products", "Best Sellers" và ít nhất 3 categories khác
-- **Ghi chú**: Có component `SectionGrid` (đã import) nhưng chưa được sử dụng trên HomePage
-- **Cần làm**: Thêm SectionGrid cho "New Products", "Best Sellers" và các categories khác
+### ✅ 1.2 - Hiển thị sản phẩm theo categories (nâng cấp)
+- **Trạng thái**: ✅ Hoàn thành + Cải tiến
+- **File**: 
+  - `frontend/src/screens/HomePage.jsx`
+  - `frontend/src/components/SectionGrid.jsx`
+- **Mô tả mới**: 
+  - Thêm hiệu ứng tự động trượt sản phẩm (auto-scroll) cho các SectionGrid.
+  - Giảm layout chính còn 3 sản phẩm mỗi hàng (tối ưu UX/UI).
+  - Hiển thị mượt, tương thích responsive.
 
 ### ✅ 1.3 - Không yêu cầu đăng nhập để xem sản phẩm
 - **Trạng thái**: ✅ Hoàn thành
@@ -410,10 +413,8 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 ### ❌ Cần bổ sung:
 1. **Listview/Gridview toggle** (3.2) - ❌ Chưa có
 2. **Categories và Tags** (3.4) - ❌ Chưa có trong Product model
-3. **Sorting theo tên (A-Z, Z-A)** (5.1) - ❌ Chưa có
-4. **SectionGrid cho New Products, Best Sellers** (1.2) - ❌ Chưa sử dụng trên HomePage
-5. **Team Collaboration evidence** (12.2) - ⚠️ Cần kiểm tra GitHub Insights
-6. **Horizontal Scaling** (12.4) - ❌ Chưa có
+3. **Team Collaboration evidence** (12.2) - ⚠️ Cần kiểm tra GitHub Insights
+4. **Horizontal Scaling** (12.4) - ❌ Chưa có
 
 ### ❌ Chưa hoàn thành:
 1. **Listview/Gridview toggle** (3.2)
@@ -424,9 +425,7 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 ## 🎯 Ưu tiên sửa chữa
 
 ### High Priority:
-1. ❌ SectionGrid cho New Products, Best Sellers trên HomePage (1.2)
-2. ❌ Sorting theo tên (A-Z, Z-A) (5.1)
-3. ❌ Categories và Tags trong Product model (3.4)
+1. ❌ Categories và Tags trong Product model (3.4)
 
 ### Medium Priority:
 1. ⚠️ Listview/Gridview toggle
