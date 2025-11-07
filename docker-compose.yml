@@ -9,7 +9,7 @@ services:
       - "4000:4000"
     env_file: ./backend/.env
     environment:
-      - GOOGLE_CLIENT_ID=385225605871-pg5d0rvifvgupu7s5rasu5itpbd4gsiu.apps.googleusercontent.com
+      - GOOGLE_CLIENT_ID=477491683221-coa8dm509q3o13na4t1mamk1b0dls1se.apps.googleusercontent.com
     volumes:
       - ./backend/src:/app/src
       - ./backend/database:/app/database
@@ -25,8 +25,8 @@ services:
       - ./frontend/src:/app/src
     environment:
       - VITE_API_BASE_URL=http://localhost:4000
-      - VITE_GOOGLE_CLIENT_ID=385225605871-pg5d0rvifvgupu7s5rasu5itpbd4gsiu.apps.googleusercontent.com
-    command: sh -c "VITE_API_BASE_URL=http://localhost:4000 VITE_GOOGLE_CLIENT_ID=385225605871-pg5d0rvifvgupu7s5rasu5itpbd4gsiu.apps.googleusercontent.com npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"
+      - VITE_GOOGLE_CLIENT_ID=477491683221-coa8dm509q3o13na4t1mamk1b0dls1se.apps.googleusercontent.com
+    command: sh -c "VITE_API_BASE_URL=http://localhost:4000 VITE_GOOGLE_CLIENT_ID=477491683221-coa8dm509q3o13na4t1mamk1b0dls1se.apps.googleusercontent.com npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"
     depends_on:
       - api
 
