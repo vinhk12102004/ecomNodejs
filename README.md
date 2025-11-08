@@ -84,12 +84,15 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 - **File**: `frontend/src/components/Pagination.jsx`
 - **Mô tả**: Pagination hoạt động trên tất cả trang hiển thị sản phẩm
 
-### ❌ 3.4 - Categories và Tags
-- **Trạng thái**: ❌ Chưa hoàn thành
+### ⚠️ 3.4 - Categories và Tags
+- **Trạng thái**: ⚠️ Hoàn thành 90%
 - **File**: `backend/src/models/product.model.js`
-- **Mô tả**: Cần thêm field `category` và `tags` vào Product model
-- **Ghi chú**: Hiện tại chỉ có `brand`, chưa có `category` và `tags`
-- **Cần làm**: Thêm field `category` và `tags` vào Product model và schema
+- **Mô tả**: 
+  - Đã thêm field `category` (enum, default: "Laptop")
+  - Đã thêm field `tags` (array of strings, validated)
+  - Cập nhật text index để hỗ trợ search theo `tags` và `category`
+  - Chưa Filter theo `category` và `tags`
+- **Kết quả**: Đã thêm field nhưng chưa filter được.
 
 ### ✅ 3.5 - Pagination hoạt động mọi nơi
 - **Trạng thái**: ✅ Hoàn thành
@@ -140,17 +143,16 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 
 ## ✅ 5. Product Ordering (Sorting)
 
-### ⚠️ 5.1 - Sắp xếp theo nhiều tiêu chí
-- **Trạng thái**: ⚠️ Thiếu sắp xếp theo tên
+### ✅ 5.1 - Sắp xếp theo nhiều tiêu chí
+- **Trạng thái**: ✅ Hoàn thành
 - **File**: `frontend/src/screens/HomePage.jsx` (dòng 43-52)
-- **Mô tả**: Hiện tại hỗ trợ:
+- **Mô tả**: 
   - ✅ Mới nhất (-createdAt)
   - ✅ Giá: Cao đến thấp (-price)
   - ✅ Giá: Thấp đến cao (price)
   - ✅ Đánh giá (-rating)
-  - ❌ Tên: A-Z (name)
-  - ❌ Tên: Z-A (-name)
-- **Cần làm**: Thêm 2 options sắp xếp theo tên (A-Z, Z-A) để đạt đầy đủ yêu cầu (ít nhất 4 tiêu chí)
+  - ✅ Tên: A-Z (name)
+  - ✅ Tên: Z-A (-name)
 
 ---
 
@@ -412,9 +414,9 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 
 ### ❌ Cần bổ sung:
 1. **Listview/Gridview toggle** (3.2) - ❌ Chưa có
-2. **Categories và Tags** (3.4) - ❌ Chưa có trong Product model
-3. **Team Collaboration evidence** (12.2) - ⚠️ Cần kiểm tra GitHub Insights
-4. **Horizontal Scaling** (12.4) - ❌ Chưa có
+2. **Team Collaboration evidence** (12.2) - ⚠️ Cần kiểm tra GitHub Insights
+3. **Horizontal Scaling** (12.4) - ❌ Chưa có
+4. **Filter Categories and Tags** (3.4) - ❌ Chưa có
 
 ### ❌ Chưa hoàn thành:
 1. **Listview/Gridview toggle** (3.2)
@@ -425,11 +427,12 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 ## 🎯 Ưu tiên sửa chữa
 
 ### High Priority:
-1. ❌ Categories và Tags trong Product model (3.4)
+
 
 ### Medium Priority:
 1. ⚠️ Listview/Gridview toggle
-2. ⚠️ Team Collaboration evidence (GitHub Insights)
+2. ⚠️ Filter Categories and Tags
+3. ⚠️ Team Collaboration evidence (GitHub Insights)
 
 ### Low Priority:
 1. ❌ Horizontal Scaling (có thể bỏ qua nếu không cần bonus)
