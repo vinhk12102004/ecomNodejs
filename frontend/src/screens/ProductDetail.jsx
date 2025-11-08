@@ -171,7 +171,8 @@ export default function ProductDetail(){
           </Link>
           <div>
             <div className="text-sm text-gray-500 uppercase tracking-wide mb-1">{item.brand}</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-3">{item.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">{item.name}</h1>
+
             <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {formatPrice(displayPrice)}
             </div>
@@ -403,6 +404,29 @@ export default function ProductDetail(){
           {addError && (
             <div className="p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-400 text-red-700 rounded-2xl shadow-sm">
               {addError}
+            </div>
+          )}
+
+          {/* 🏷️ Danh mục */}
+          <div className="text-sm text-gray-700 mb-3">
+            <span className="font-semibold">Danh mục:</span>{" "}
+            <span className="inline-block bg-gray-100 px-3 py-1 rounded-full border border-gray-300">
+              {item.category || "Không có danh mục"}
+            </span>
+          </div>
+
+          {/* 🏷️ Thẻ */}
+          {item.tags && item.tags.length > 0 && (
+            <div className="text-sm text-gray-700 mb-3">
+              <span className="font-semibold">Thẻ:</span>{" "}
+              {item.tags.map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="inline-block bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200 mr-2 mt-1"
+                >
+                  #{tag}
+                </span>
+              ))}
             </div>
           )}
 

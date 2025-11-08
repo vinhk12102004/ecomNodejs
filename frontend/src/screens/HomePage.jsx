@@ -57,7 +57,13 @@ export default function HomePage() {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar Filters */}
         <aside className="lg:w-64 flex-shrink-0">
-          <Filters params={params} onChange={setQuery} />
+          <Filters
+            params={params}
+            onChange={(filters) => {
+              // ép React gọi lại useEffect trong useProducts.js
+              setQuery({ ...filters, _refresh: Date.now() });
+            }}
+          />
         </aside>
 
         {/* Main Products Area */}
