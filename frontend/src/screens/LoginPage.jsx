@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useNavigate, Link } from 'react-router-dom';
-import { login, googleLogin } from '../lib/api';
+import { login, googleLogin, getMe } from '../lib/api'; // ✅ thêm getMe
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Get clientId from import.meta.env (set by Vite)
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -18,11 +18,24 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
+      // 🔹 Gọi API login
       const { user, accessToken } = await login(formData);
+
+      // 🔹 Lưu token + user info
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', JSON.stringify(user));
-      navigate('/');
+
+      // 🔹 Gọi getMe() để xác nhận role mới nhất
+      const me = await getMe();
+
+      // 🔹 Điều hướng theo role
+      if (me.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
+      console.error(err);
       setError(err.response?.data?.error || err.message || 'Đăng nhập thất bại');
     } finally {
       setSubmitting(false);
@@ -36,7 +49,13 @@ export default function LoginPage() {
       const { user, accessToken } = await googleLogin(idToken);
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', JSON.stringify(user));
-      navigate('/');
+
+      // 🔹 Kiểm tra role
+      if (user?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Đăng nhập Google thất bại');
     }
@@ -89,10 +108,7 @@ export default function LoginPage() {
           </div>
 
           <div className="flex items-center justify-between">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
+            <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
               Quên mật khẩu?
             </Link>
           </div>
@@ -125,8 +141,8 @@ export default function LoginPage() {
           )}
           {clientId && (
             <GoogleOAuthProvider clientId={clientId}>
-              <GoogleLogin 
-                onSuccess={onGoogleSuccess} 
+              <GoogleLogin
+                onSuccess={onGoogleSuccess}
                 onError={(error) => {
                   console.error('Google Login Error:', error);
                   setError('Lỗi đăng nhập Google: ' + (error.error || 'Vui lòng kiểm tra cấu hình OAuth'));
@@ -149,5 +165,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-

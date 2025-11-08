@@ -8,7 +8,7 @@ import ThankYouPage from "../screens/ThankYouPage.jsx";
 import ProfilePage from "../screens/ProfilePage.jsx";
 import OrderDetail from "../screens/OrderDetail.jsx";
 import MyOrders from "../screens/MyOrders.jsx";
-import AdminOrderDetail from "../screens/AdminOrderDetail.jsx";
+import AdminOrderDetail from "../screens/admin/AdminOrderDetail.jsx";
 import LoginPage from "../screens/LoginPage.jsx";
 import SignupPage from "../screens/SignupPage.jsx";
 import ForgotPasswordPage from "../screens/ForgotPasswordPage.jsx";

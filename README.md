@@ -330,7 +330,7 @@ File này liệt kê tất cả các yêu cầu từ tài liệu dự án và tr
 - **Trạng thái**: ✅ Hoàn thành
 - **Files**: 
   - `frontend/src/screens/admin/OrdersList.jsx`
-  - `frontend/src/screens/AdminOrderDetail.jsx`
+  - `frontend/src/screens/admin/AdminOrderDetail.jsx`
 - **Mô tả**: 
   - Xem danh sách đơn hàng (sắp xếp mới nhất trước, pagination ~20 items/page)
   - Filter theo: today, yesterday, this week, this month, custom range

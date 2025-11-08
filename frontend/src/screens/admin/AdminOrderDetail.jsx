@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { adminGetOrderDetail, adminUpdateOrderStatus } from '../lib/api';
+import { adminGetOrderDetail, adminUpdateOrderStatus } from '../../lib/api';
 
 export default function AdminOrderDetail() {
   const { id } = useParams();
