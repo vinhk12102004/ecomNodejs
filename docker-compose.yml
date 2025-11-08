@@ -1,15 +1,33 @@
-﻿version: '3.8'
+﻿services:
+  # Nginx Load Balancer
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - web
+    networks:
+      - default
 
-services:
   api:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "4000:4000"
+    # Remove port exposure when scaling (Nginx will route traffic internally)
+    # ports:
+    #   - "4000:4000"
     env_file: ./backend/.env
     environment:
       - GOOGLE_CLIENT_ID=477491683221-coa8dm509q3o13na4t1mamk1b0dls1se.apps.googleusercontent.com
+      - VNP_TMN_CODE=WVPILPKE
+      - VNP_HASH_SECRET=406I8J10RA2FVTKC0J3JPC3AA0023FNE
+      - VNP_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - VNP_RETURN_URL=http://localhost/api/payment/vnpay/return
+      - VNP_IPN_URL=http://your-domain.com/api/payment/vnpay/ipn
+      - FRONTEND_URL=http://localhost
     volumes:
       - ./backend/src:/app/src
       - ./backend/database:/app/database
@@ -19,14 +37,15 @@ services:
 
   web:
     build: ./frontend
-    ports:
-      - "5173:5173"
+    # Remove direct port exposure when using nginx
+    # ports:
+    #   - "5173:5173"
     volumes:
       - ./frontend/src:/app/src
     environment:
-      - VITE_API_BASE_URL=http://localhost:4000
+      - VITE_API_BASE_URL=http://localhost/api
       - VITE_GOOGLE_CLIENT_ID=477491683221-coa8dm509q3o13na4t1mamk1b0dls1se.apps.googleusercontent.com
-    command: sh -c "VITE_API_BASE_URL=http://localhost:4000 VITE_GOOGLE_CLIENT_ID=477491683221-coa8dm509q3o13na4t1mamk1b0dls1se.apps.googleusercontent.com npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"
+    command: sh -c "VITE_API_BASE_URL=http://localhost/api VITE_GOOGLE_CLIENT_ID=477491683221-coa8dm509q3o13na4t1mamk1b0dls1se.apps.googleusercontent.com npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"
     depends_on:
       - api
 
@@ -40,7 +59,6 @@ services:
       MONGO_INITDB_DATABASE: ecommerce
     volumes:
       - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
   mailhog:
     image: mailhog/mailhog:latest

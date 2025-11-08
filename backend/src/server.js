@@ -8,6 +8,7 @@ import routes from "./routes/index.js";
 import http from "http";
 import { Server } from "socket.io";
 import { connectDB } from "./config/db.js";
+import { swaggerSetup } from "./config/swagger.js";
 
 const app = express();
 
@@ -17,7 +18,11 @@ app.use(cors({
 }));
 app.use(cookieParser());
 app.use(express.json());
-app.use("/", routes);
+
+// Swagger documentation
+swaggerSetup(app);
+
+app.use("/api", routes);
 
 const PORT = process.env.PORT || 4000;
 

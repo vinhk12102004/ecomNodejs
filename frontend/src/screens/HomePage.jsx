@@ -8,6 +8,7 @@ import SectionGrid from "../components/SectionGrid";
 export default function HomePage() {
   const { data, meta, loading, error, params, setQuery, setPage } = useProducts();
   const [showAllProducts, setShowAllProducts] = useState(true);
+  const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
 
   return (
     <div className="container mx-auto px-4 py-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
@@ -76,6 +77,35 @@ export default function HomePage() {
               {Math.min(meta.page * meta.limit, meta.total)} trong tổng số {meta.total}
             </div>
             <div className="flex items-center gap-4">
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-2 bg-white border-2 border-gray-300 rounded-xl p-1 shadow-sm">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === "grid"
+                      ? "bg-atlas-blue text-white shadow-md"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                  title="Grid View"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === "list"
+                      ? "bg-atlas-blue text-white shadow-md"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                  title="List View"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              </div>
               <select
                 className="bg-white border-2 border-gray-300 text-gray-900 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-atlas-blue shadow-sm"
                 value={params.sort || "-createdAt"}
@@ -122,15 +152,22 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Products Grid */}
+          {/* Products Grid/List */}
           {!loading && data && data.length > 0 && (
             <>
-              {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"> */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {data.map((p) => (
-                  <ProductCard key={p._id} item={p} />
-                ))}
-              </div>
+              {viewMode === "grid" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {data.map((p) => (
+                    <ProductCard key={p._id} item={p} />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {data.map((p) => (
+                    <ProductCard key={p._id} item={p} viewMode="list" />
+                  ))}
+                </div>
+              )}
 
               {/* Pagination */}
               <div className="flex justify-center mt-10 mb-16">

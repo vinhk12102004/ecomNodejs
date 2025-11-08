@@ -12,7 +12,7 @@ import { formatPrice } from '../utils/formatPrice.js';
  */
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { items, subtotal, fetch, clear } = useCart();
+  const { items, subtotal, loading: cartLoading, error: cartError, fetch, clear } = useCart();
 
   // User & Address state
   const [user, setUser] = useState(null);
@@ -40,6 +40,9 @@ export default function CheckoutPage() {
   // Loyalty points state
   const [usePoints, setUsePoints] = useState(false);
   const [redeemPoints, setRedeemPoints] = useState(0);
+
+  // Payment method state
+  const [paymentMethod, setPaymentMethod] = useState('cod'); // 'cod' or 'vnpay'
 
   // Checkout state
   const [submitting, setSubmitting] = useState(false);
@@ -74,15 +77,15 @@ export default function CheckoutPage() {
     }
   }, []);
 
-  // Redirect if cart is empty
+  // Redirect if cart is empty (only after loading is complete)
   useEffect(() => {
-    if (items.length === 0) {
+    if (!cartLoading && items.length === 0) {
       const timer = setTimeout(() => {
         navigate('/cart');
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [items, navigate]);
+  }, [items, cartLoading, navigate]);
 
   // Get headers with guest token
   const getHeaders = () => {
@@ -177,7 +180,8 @@ export default function CheckoutPage() {
       const confirmData = {
         email: user ? user.email : email,
         couponCode: couponCode || undefined,
-        redeemPoints: usePoints ? redeemPoints : 0
+        redeemPoints: usePoints ? redeemPoints : 0,
+        paymentMethod: paymentMethod || 'cod'
       };
 
       if (user && selectedAddressId && !useNewAddress) {
@@ -197,10 +201,19 @@ export default function CheckoutPage() {
 
       const result = await checkoutConfirm(confirmData, getHeaders());
 
+      // If VNPAY payment, redirect to payment URL
+      if (result.paymentUrl) {
+        // Clear cart before redirecting
+        await clear();
+        // Redirect to VNPAY payment page
+        window.location.href = result.paymentUrl;
+        return;
+      }
+
       // Clear cart
       await clear();
 
-      // Navigate to thank you page with order ID
+      // Navigate to thank you page with order ID (for COD)
       navigate('/thank-you', { 
         state: { 
           orderId: result.order._id,
@@ -214,12 +227,32 @@ export default function CheckoutPage() {
     }
   };
 
-  // Empty cart message
-  if (items.length === 0) {
+  // Loading state - show spinner while cart is loading
+  if (cartLoading && items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Đang tải giỏ hàng...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty cart message (only show after loading is complete)
+  if (!cartLoading && items.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-20 h-20 mx-auto mb-4 text-red-500">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-red-600 font-semibold text-lg mb-2">Cart is empty</p>
             <p className="text-gray-400 mb-4">Giỏ hàng trống, đang chuyển hướng...</p>
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
           </div>
@@ -235,6 +268,18 @@ export default function CheckoutPage() {
         <h1 className="text-3xl font-bold text-gray-900">Thanh toán</h1>
         <p className="text-gray-600 mt-2 font-medium">Vui lòng điền thông tin để hoàn tất đơn hàng</p>
       </div>
+
+      {/* Cart Error Message */}
+      {cartError && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-400 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-2 text-red-700">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-semibold">Lỗi giỏ hàng: {cartError}</span>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div className="grid lg:grid-cols-3 gap-8">
@@ -364,6 +409,62 @@ export default function CheckoutPage() {
                     placeholder="Hà Nội, Hồ Chí Minh, ..."
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Payment Method Section */}
+            <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-6 shadow-md">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Phương thức thanh toán
+              </h2>
+              <div className="space-y-3">
+                {/* COD Option */}
+                <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:border-blue-500 hover:bg-blue-50"
+                  style={{ 
+                    borderColor: paymentMethod === 'cod' ? '#3b82f6' : '#e5e7eb',
+                    backgroundColor: paymentMethod === 'cod' ? '#eff6ff' : 'transparent'
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
+                    checked={paymentMethod === 'cod'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-5 h-5 text-blue-600 focus:ring-blue-500 mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">Thanh toán khi nhận hàng (COD)</div>
+                    <div className="text-sm text-gray-600">Thanh toán bằng tiền mặt khi nhận được hàng</div>
+                  </div>
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </label>
+
+                {/* VNPAY Option */}
+                <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:border-blue-500 hover:bg-blue-50"
+                  style={{ 
+                    borderColor: paymentMethod === 'vnpay' ? '#3b82f6' : '#e5e7eb',
+                    backgroundColor: paymentMethod === 'vnpay' ? '#eff6ff' : 'transparent'
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="vnpay"
+                    checked={paymentMethod === 'vnpay'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-5 h-5 text-blue-600 focus:ring-blue-500 mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">Thanh toán online (VNPAY)</div>
+                    <div className="text-sm text-gray-600">Thanh toán qua thẻ ATM, thẻ quốc tế, hoặc ví điện tử</div>
+                  </div>
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </label>
               </div>
             </div>
 

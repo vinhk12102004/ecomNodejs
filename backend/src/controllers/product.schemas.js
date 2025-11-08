@@ -34,6 +34,8 @@ const specsSchema = z.object({
 export const CreateProductSchema = z.object({
   name: z.string().min(1).trim(),
   brand: z.enum(["Apple", "Dell", "HP", "Lenovo", "Asus", "Acer", "MSI", "Razer", "LG", "Microsoft", "Gigabyte", "Samsung", "Other"]),
+  category: z.enum(["Gaming", "Business", "Ultrabook", "Workstation", "2-in-1", "Chromebook", "Other"]).optional().default("Other"),
+  tags: z.array(z.string()).optional().default([]),
   price: z.number().min(0),
   description: z.string().optional().default(""),
   image: z.string().url().optional().default(""),
@@ -44,6 +46,8 @@ export const CreateProductSchema = z.object({
 export const UpdateProductSchema = z.object({
   name: z.string().min(1).trim().optional(),
   brand: z.enum(["Apple", "Dell", "HP", "Lenovo", "Asus", "Acer", "MSI", "Razer", "LG", "Microsoft", "Gigabyte", "Samsung", "Other"]).optional(),
+  category: z.enum(["Gaming", "Business", "Ultrabook", "Workstation", "2-in-1", "Chromebook", "Other"]).optional(),
+  tags: z.array(z.string()).optional(),
   price: z.number().min(0).optional(),
   description: z.string().optional(),
   image: z.string().url().optional(),
@@ -65,6 +69,14 @@ export const ListQuerySchema = z.object({
   // Support both string "MSI,Asus" and array ["MSI", "Asus"]
   brand: z.union([
     z.string().transform(val => val ? val.split(',').map(b => b.trim()) : undefined),
+    z.array(z.string())
+  ]).optional(),
+  category: z.union([
+    z.string().transform(val => val ? val.split(',').map(c => c.trim()) : undefined),
+    z.array(z.string())
+  ]).optional(),
+  tags: z.union([
+    z.string().transform(val => val ? val.split(',').map(t => t.trim().toLowerCase()) : undefined),
     z.array(z.string())
   ]).optional(),
   minPrice: z.string().transform(val => parseFloat(val) || undefined).pipe(z.number().min(0)).optional(),

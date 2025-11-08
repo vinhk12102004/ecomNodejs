@@ -40,17 +40,25 @@ const useCart = create((set, get) => ({
   fetch: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await api.getCart(getHeaders());
+      const headers = getHeaders();
+      console.log('Fetching cart with headers:', headers);
+      
+      const response = await api.getCart(headers);
       saveGuestToken(response);
       
+      console.log('Cart response:', response.data);
+      
       const { items = [], subtotal = 0, count = 0 } = response.data;
-      set({ items, subtotal, count, loading: false });
+      set({ items, subtotal, count, loading: false, error: null });
     } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Failed to fetch cart';
+      console.error('Fetch cart error:', err);
+      console.error('Error response:', err.response?.data);
+      
       set({ 
-        error: err.response?.data?.error || 'Failed to fetch cart',
+        error: errorMsg,
         loading: false 
       });
-      console.error('Fetch cart error:', err);
     }
   },
 
@@ -83,15 +91,16 @@ const useCart = create((set, get) => ({
    * Update item quantity
    * @param {String} productId 
    * @param {Number} qty 
+   * @param {String} skuId - Optional variant SKU
    */
-  updateQty: async (productId, qty) => {
+  updateQty: async (productId, qty, skuId = null) => {
     if (qty < 1) {
-      return get().remove(productId);
+      return get().remove(productId, skuId);
     }
     
     set({ loading: true, error: null });
     try {
-      const response = await api.updateItem(productId, qty, getHeaders());
+      const response = await api.updateItem(productId, qty, skuId, getHeaders());
       saveGuestToken(response);
       
       const { items = [], subtotal = 0, count = 0 } = response.data;
@@ -113,21 +122,30 @@ const useCart = create((set, get) => ({
   /**
    * Remove item from cart
    * @param {String} productId 
+   * @param {String} skuId - Optional variant SKU
    */
-  remove: async (productId) => {
+  remove: async (productId, skuId = null) => {
     set({ loading: true, error: null });
     try {
-      const response = await api.removeItem(productId, getHeaders());
+      const response = await api.removeItem(productId, skuId, getHeaders());
       saveGuestToken(response);
       
-      const { items = [], subtotal = 0, count = 0 } = response.data;
-      set({ items, subtotal, count, loading: false });
+      // Extract cart data from response
+      const cartData = response.data || response;
+      const { items = [], subtotal = 0, count = 0 } = cartData;
+      
+      // Update state with new cart data
+      set({ items, subtotal, count, loading: false, error: null });
       
       return { success: true };
     } catch (err) {
       const error = err.response?.data?.error || 'Failed to remove item';
       set({ error, loading: false });
       console.error('Remove item error:', err);
+      console.error('Error details:', err.response?.data);
+      
+      // Refresh cart on error to get latest state
+      await get().fetch();
       
       return { success: false, error };
     }

@@ -1,5 +1,6 @@
 import * as cartService from "../services/cart.service.js";
 import * as emailService from "../services/email.service.js";
+import { createPaymentUrl, removeDiacritics } from "../services/vnpay.service.js";
 import Cart from "../models/cart.model.js";
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
@@ -129,7 +130,7 @@ export async function confirm(req, res) {
   try {
     const userId = req.user?.id;
     const guestToken = req.guestToken;
-    const { email, couponCode, redeemPoints = 0, address, addressId } = req.body;
+    const { email, couponCode, redeemPoints = 0, address, addressId, paymentMethod = 'cod' } = req.body;
 
     // Get cart
     const query = userId ? { userId } : { guestToken };
@@ -299,18 +300,24 @@ export async function confirm(req, res) {
       },
       totalAmount: total,
       status: 'pending',
+      paymentMethod: paymentMethod || 'cod',
+      paymentStatus: paymentMethod === 'vnpay' ? 'pending' : 'pending',
       statusHistory: [{
         status: 'pending',
         at: new Date()
       }]
     });
 
-    // Update product stock
-    for (const item of cart.items) {
-      await Product.findByIdAndUpdate(
-        item.product._id,
-        { $inc: { stock: -item.qty } }
-      );
+    // Only update stock if COD (cash on delivery)
+    // For VNPAY, stock will be updated after payment confirmation via IPN
+    if (paymentMethod !== 'vnpay') {
+      // Update product stock
+      for (const item of cart.items) {
+        await Product.findByIdAndUpdate(
+          item.product._id,
+          { $inc: { stock: -item.qty } }
+        );
+      }
     }
 
     // Update coupon usage
@@ -356,7 +363,76 @@ export async function confirm(req, res) {
     // Clear cart
     await cartService.clearCart({ userId, guestToken });
 
-    // Send confirmation email
+    // If VNPAY payment, create payment URL
+    if (paymentMethod === 'vnpay') {
+      try {
+        // Get customer IP address
+        const ipAddr = req.headers['x-forwarded-for'] ||
+          req.connection.remoteAddress ||
+          req.socket.remoteAddress ||
+          (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+          '127.0.0.1';
+
+        // Create order info (Vietnamese without diacritics)
+        const orderInfo = removeDiacritics(`Thanh toan don hang ${order._id.toString().slice(-8).toUpperCase()}`);
+
+        // Generate payment URL
+        const paymentUrl = createPaymentUrl({
+          amount: total,
+          orderId: order._id.toString(),
+          orderInfo: orderInfo,
+          orderType: 'other',
+          ipAddr,
+          bankCode: null,
+          locale: 'vn'
+        });
+
+        // Save transaction reference to order
+        order.paymentInfo = {
+          vnpTxnRef: order._id.toString()
+        };
+        await order.save();
+
+        return res.status(201).json({
+          order: {
+            _id: order._id,
+            orderNumber: order._id.toString().slice(-8).toUpperCase(),
+            items: order.items,
+            pricing: order.pricing,
+            totalAmount: order.totalAmount,
+            status: order.status,
+            paymentMethod: order.paymentMethod,
+            paymentStatus: order.paymentStatus,
+            createdAt: order.createdAt,
+            statusHistory: order.statusHistory
+          },
+          paymentUrl,
+          message: "Order created. Redirecting to payment..."
+        });
+      } catch (vnpayErr) {
+        console.error('VNPAY payment URL creation error:', vnpayErr);
+        console.error('Error details:', vnpayErr.message);
+        
+        // If VNPAY fails, still return order but mark as failed
+        order.paymentStatus = 'failed';
+        await order.save();
+        
+        // Return detailed error message
+        const errorMessage = vnpayErr.message || "Failed to create payment URL";
+        return res.status(500).json({
+          error: errorMessage,
+          details: "Please check VNPAY configuration in backend/.env file. Required: VNP_TMN_CODE, VNP_HASH_SECRET",
+          order: {
+            _id: order._id,
+            orderNumber: order._id.toString().slice(-8).toUpperCase(),
+            status: order.status,
+            paymentStatus: order.paymentStatus
+          }
+        });
+      }
+    }
+
+    // Send confirmation email (only for COD)
     const emailTo = email || (await User.findById(userId))?.email;
     
     if (emailTo) {
@@ -376,6 +452,8 @@ export async function confirm(req, res) {
         pricing: order.pricing,
         totalAmount: order.totalAmount,
         status: order.status,
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
         createdAt: order.createdAt,
         statusHistory: order.statusHistory
       },

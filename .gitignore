@@ -33,3 +33,6 @@ Thumbs.db
 # Docker
 *.log
 
+# Documentation files (keep in repo)
+# TODO.md - Project documentation
+# FIX_SCALE_ERROR.md - Can be removed if not needed

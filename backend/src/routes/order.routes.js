@@ -4,14 +4,13 @@ import * as orderController from "../controllers/order.controller.js";
 
 const router = Router();
 
-// All routes require authentication
-router.use(authGuard());
+// Get user's orders - must be BEFORE /:id route to avoid matching "my" as an ID
+router.get("/my", authGuard(), orderController.getMyOrders);
 
-// Get user's orders
-router.get("/my", orderController.getMyOrders);
-
-// Get single order detail (must belong to user)
-router.get("/:id", orderController.getMyOrderDetail);
+// Get single order detail - allow both authenticated and guest users
+// (Guest users need this for VNPAY return page)
+// This route uses optional auth, so it can be accessed by guest users
+router.get("/:id", authGuard([], { optional: true }), orderController.getMyOrderDetail);
 
 export default router;
 

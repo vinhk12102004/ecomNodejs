@@ -9,6 +9,7 @@ import ProfilePage from "../screens/ProfilePage.jsx";
 import OrderDetail from "../screens/OrderDetail.jsx";
 import MyOrders from "../screens/MyOrders.jsx";
 import AdminOrderDetail from "../screens/admin/AdminOrderDetail.jsx";
+import VnpayReturnPage from "../screens/VnpayReturnPage.jsx";
 import LoginPage from "../screens/LoginPage.jsx";
 import SignupPage from "../screens/SignupPage.jsx";
 import ForgotPasswordPage from "../screens/ForgotPasswordPage.jsx";
@@ -86,7 +87,6 @@ export default function App(){
             </Link>
             <nav className="flex items-center gap-6">
               <Link to="/profile" className="text-gray-700 hover:text-atlas-blue font-medium transition">Contact</Link>
-              <Link to="/account/orders" className="text-gray-700 hover:text-atlas-blue font-medium transition">Point</Link>
               <Link to="/account/orders" className="text-gray-700 hover:text-atlas-blue font-medium transition">History</Link>
               <Link to="/login" className="text-gray-700 hover:text-atlas-blue font-medium transition">Log in</Link>
               <Link to="/cart" className="relative hover:text-atlas-blue transition text-gray-700">
@@ -116,6 +116,7 @@ export default function App(){
           <Route path="/cart" element={<CartPage/>} />
           <Route path="/checkout" element={<CheckoutPage/>} />
           <Route path="/thank-you" element={<ThankYouPage/>} />
+          <Route path="/payment/vnpay/return" element={<VnpayReturnPage/>} />
           <Route path="/order/:id" element={<OrderDetail/>} />
           <Route path="/account/orders" element={<MyOrders/>} />
           <Route path="/account/orders/:id" element={<OrderDetail/>} />

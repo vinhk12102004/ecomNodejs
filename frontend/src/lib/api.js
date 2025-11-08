@@ -50,18 +50,25 @@ export const addItem = (productId, qty, skuId = null, headers) => {
 export const bulkAddItems = (items, headers) => {
   return api.post("/cart/items/bulk", { items }, { headers }).then(r => r);
 };
-export const updateItem = (productId, qty, headers) => 
-  api.patch(`/cart/items/${productId}`, { qty }, { headers }).then(r => r);
-export const removeItem = (productId, headers) => 
-  api.delete(`/cart/items/${productId}`, { headers }).then(r => r);
+export const updateItem = (productId, qty, skuId = null, headers) => {
+  const body = { qty };
+  if (skuId) {
+    body.skuId = skuId;
+  }
+  return api.patch(`/cart/items/${productId}`, body, { headers }).then(r => r);
+};
+export const removeItem = (productId, skuId = null, headers) => {
+  const params = skuId ? { skuId } : {};
+  return api.delete(`/cart/items/${productId}`, { params, headers }).then(r => r);
+};
 export const clearCart = (headers) => 
   api.delete("/cart", { headers }).then(r => r);
 
 // Checkout Helpers
 export const checkoutPreview = ({ couponCode, redeemPoints } = {}, headers) => 
   api.post("/checkout/preview", { couponCode, redeemPoints }, { headers }).then(r => r.data);
-export const checkoutConfirm = ({ email, couponCode, redeemPoints, address, addressId }, headers) => 
-  api.post("/checkout/confirm", { email, couponCode, redeemPoints, address, addressId }, { headers }).then(r => r.data);
+export const checkoutConfirm = ({ email, couponCode, redeemPoints, address, addressId, paymentMethod }, headers) => 
+  api.post("/checkout/confirm", { email, couponCode, redeemPoints, address, addressId, paymentMethod }, { headers }).then(r => r.data);
 
 // Order Helpers
 export const getMyOrders = (params = {}) => 

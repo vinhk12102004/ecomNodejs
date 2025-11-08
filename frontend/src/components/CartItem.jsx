@@ -10,7 +10,7 @@ export default function CartItem({ item }) {
   const { updateQty, remove } = useCart();
   const [updating, setUpdating] = useState(false);
 
-  const { product, qty, priceAtAdd, nameSnapshot, imageSnapshot } = item;
+  const { product, qty, priceAtAdd, nameSnapshot, imageSnapshot, skuId } = item;
   const lineTotal = priceAtAdd * qty;
   
   // Use snapshot if available, otherwise use product data
@@ -23,14 +23,14 @@ export default function CartItem({ item }) {
   const handleDecrease = async () => {
     if (updating) return;
     setUpdating(true);
-    await updateQty(productId, qty - 1);
+    await updateQty(productId, qty - 1, skuId);
     setUpdating(false);
   };
 
   const handleIncrease = async () => {
     if (updating) return;
     setUpdating(true);
-    await updateQty(productId, qty + 1);
+    await updateQty(productId, qty + 1, skuId);
     setUpdating(false);
   };
 
@@ -39,8 +39,13 @@ export default function CartItem({ item }) {
     if (!confirm('Xóa sản phẩm này khỏi giỏ hàng?')) return;
     
     setUpdating(true);
-    await remove(productId);
+    const result = await remove(productId, skuId);
     setUpdating(false);
+    
+    // If removal failed, show error
+    if (!result.success) {
+      alert(result.error || 'Không thể xóa sản phẩm');
+    }
   };
 
   return (

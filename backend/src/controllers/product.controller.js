@@ -14,6 +14,8 @@ export const listProducts = async (req, res, next) => {
       limit: rawLimit = 20,
       q,
       brand,
+      category,
+      tags,
       minPrice,
       maxPrice,
       minRamGB,
@@ -35,6 +37,18 @@ export const listProducts = async (req, res, next) => {
       // nếu brand truyền lên dạng string, chuyển về mảng
       const brands = Array.isArray(brand) ? brand : [brand];
       filter.brand = { $in: brands };
+    }
+
+    // Category filter
+    if (category && category.length > 0) {
+      const categories = Array.isArray(category) ? category : [category];
+      filter.category = { $in: categories };
+    }
+
+    // Tags filter (sản phẩm có chứa bất kỳ tag nào trong danh sách)
+    if (tags && tags.length > 0) {
+      const tagsArray = Array.isArray(tags) ? tags : [tags];
+      filter.tags = { $in: tagsArray };
     }
 
     // Price range filter

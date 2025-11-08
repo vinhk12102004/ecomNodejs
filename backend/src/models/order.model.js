@@ -45,7 +45,26 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "confirmed", "shipping", "delivered", "cancelled"],
       default: "pending"
     },
-    statusHistory: [orderStatusSchema]
+    statusHistory: [orderStatusSchema],
+    // Payment fields
+    paymentMethod: {
+      type: String,
+      enum: ["cod", "vnpay", "other"],
+      default: "cod"
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "refunded"],
+      default: "pending"
+    },
+    paymentInfo: {
+      vnpTransactionNo: String, // VNPAY transaction number
+      vnpBankCode: String, // Bank code used
+      vnpCardType: String, // Card type
+      vnpPayDate: String, // Payment date from VNPAY
+      vnpResponseCode: String, // Response code (00 = success)
+      vnpTxnRef: String // Transaction reference
+    }
   },
   { timestamps: true }
 );

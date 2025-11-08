@@ -23,8 +23,12 @@ export default function SignupPage() {
       
       setSuccess(true);
       
-      // Redirect to home immediately after successful signup
-      navigate('/', { replace: true });
+      // Redirect to admin dashboard if user is admin, otherwise go to home
+      if (user?.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Đăng ký thất bại');
     } finally {
