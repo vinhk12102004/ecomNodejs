@@ -10,9 +10,9 @@ export default function ProductCard({ item, viewMode = "grid" }){
   // List View Layout
   if (viewMode === "list") {
     return (
-      <Link to={`/product/${item._id}`} className="group bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-atlas-blue hover:shadow-xl transition-all duration-300 p-4 flex flex-row gap-6 shadow-md">
-        {/* Product Image - Smaller in list view */}
-        <div className="w-48 h-48 flex-shrink-0 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden flex items-center justify-center">
+      <Link to={`/product/${item._id}`} className="group bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-atlas-blue hover:shadow-xl transition-all duration-300 p-3 md:p-4 flex flex-col sm:flex-row gap-4 md:gap-6 shadow-md">
+        {/* Product Image - Smaller in list view, responsive */}
+        <div className="w-full sm:w-32 md:w-48 h-32 sm:h-32 md:h-48 flex-shrink-0 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden flex items-center justify-center">
           {imageUrl
             ? <img src={imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
             : <div className="text-gray-400 text-sm">📷 No Image</div>}
@@ -21,7 +21,7 @@ export default function ProductCard({ item, viewMode = "grid" }){
         {/* Product Info - Horizontal Layout */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <div className="space-y-2">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3">
               <div className="text-xs text-gray-500 uppercase tracking-wide font-medium">{item.brand}</div>
               {item.category && (
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">{item.category}</span>
@@ -30,7 +30,7 @@ export default function ProductCard({ item, viewMode = "grid" }){
                 <div className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full">✓ Còn hàng</div>
               )}
             </div>
-            <div className="font-semibold text-lg text-gray-900 group-hover:text-atlas-blue transition">{item.name}</div>
+            <div className="font-semibold text-base md:text-lg text-gray-900 group-hover:text-atlas-blue transition">{item.name}</div>
             
             {/* Description */}
             {item.description && (
@@ -53,21 +53,21 @@ export default function ProductCard({ item, viewMode = "grid" }){
           </div>
           
           {/* Bottom Section - Rating and Price */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200">
             {/* Rating */}
             {item.rating && (
               <div className="flex items-center gap-2">
-                <span className="text-yellow-500 text-lg">⭐</span>
-                <span className="font-semibold text-gray-900">{item.rating.toFixed(1)}</span>
-                <span className="text-sm text-gray-500">({item.rating || 0} đánh giá)</span>
+                <span className="text-yellow-500 text-base md:text-lg">⭐</span>
+                <span className="font-semibold text-gray-900 text-sm md:text-base">{item.rating.toFixed(1)}</span>
+                <span className="text-xs md:text-sm text-gray-500 hidden sm:inline">({item.rating || 0} đánh giá)</span>
               </div>
             )}
             
             {/* Price */}
             {item.price && (
-              <div className="flex items-center gap-3">
-                <span className="text-gray-400 line-through text-sm">{formatPrice(item.price * 1.1)}</span>
-                <span className="font-bold text-2xl bg-gradient-to-r from-atlas-blue to-atlas-green bg-clip-text text-transparent">{formatPrice(item.price ?? 0)}</span>
+              <div className="flex items-center gap-2 md:gap-3">
+                <span className="text-gray-400 line-through text-xs md:text-sm">{formatPrice(item.price * 1.1)}</span>
+                <span className="font-bold text-xl md:text-2xl bg-gradient-to-r from-atlas-blue to-atlas-green bg-clip-text text-transparent">{formatPrice(item.price ?? 0)}</span>
               </div>
             )}
           </div>

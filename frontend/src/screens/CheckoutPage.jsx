@@ -282,11 +282,11 @@ export default function CheckoutPage() {
       )}
 
       <form onSubmit={handleSubmit}>
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
           {/* Left Column - Form */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Contact Information */}
-            <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-6 shadow-md">
+            <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-4 md:p-6 shadow-md">
               <h2 className="text-xl font-bold text-gray-900 mb-4">
                 Thông tin liên hệ
               </h2>

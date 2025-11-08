@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Routes, Route, Link, useLocation } from "react-router-dom";
 import HomePage from "../screens/HomePage.jsx";
 import ProductDetail from "../screens/ProductDetail.jsx";
 import CartPage from "../screens/CartPage.jsx";
@@ -24,8 +24,66 @@ import ProductsList from "../screens/admin/ProductsList.jsx";
 import UsersList from "../screens/admin/UsersList.jsx";
 import useCart from "../hooks/useCart.js";
 
+// Navigation Link Component with Active State
+function NavLink({ to, children, className = "" }) {
+  const location = useLocation();
+  // Special handling for different routes
+  let isActive = false;
+  if (to === '/profile') {
+    isActive = location.pathname === '/profile';
+  } else if (to === '/account/orders') {
+    isActive = location.pathname.startsWith('/account/orders') || location.pathname.startsWith('/order/');
+  } else if (to === '/login') {
+    isActive = location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/forgot-password' || location.pathname === '/reset-password';
+  } else if (to === '/cart') {
+    isActive = location.pathname === '/cart' || location.pathname === '/checkout' || location.pathname === '/thank-you';
+  } else {
+    isActive = location.pathname === to;
+  }
+  
+  return (
+    <Link
+      to={to}
+      className={`font-medium transition-all duration-200 ${
+        isActive
+          ? 'text-atlas-blue border-b-2 border-atlas-blue pb-1 font-semibold'
+          : 'text-gray-700 hover:text-atlas-blue'
+      } ${className}`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+// Icon Link Component with Active State
+function IconLink({ to, children, className = "" }) {
+  const location = useLocation();
+  // Special handling for cart icon
+  let isActive = false;
+  if (to === '/cart') {
+    isActive = location.pathname === '/cart' || location.pathname === '/checkout' || location.pathname === '/thank-you';
+  } else {
+    isActive = location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
+  }
+  
+  return (
+    <Link
+      to={to}
+      className={`relative transition-all duration-200 ${
+        isActive
+          ? 'text-atlas-blue scale-110'
+          : 'text-gray-700 hover:text-atlas-blue hover:scale-105'
+      } ${className}`}
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default function App(){
+  const location = useLocation();
   const { count, fetchCount } = useCart();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Fetch cart count on mount and on focus
   useEffect(() => {
@@ -38,6 +96,11 @@ export default function App(){
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [fetchCount]);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -79,22 +142,33 @@ export default function App(){
       </div>
 
       {/* Main Header - Brand and Navigation */}
-      <header className="bg-white border-b-2 border-gray-200 sticky top-0 z-10 shadow-sm">
+      <header className="bg-white border-b-2 border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-4">
-            <Link to="/" className="text-3xl font-bold bg-gradient-to-r from-atlas-lime to-atlas-blue bg-clip-text text-transparent">
+            <Link to="/" className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-atlas-lime to-atlas-blue bg-clip-text text-transparent">
               Xparadise
             </Link>
-            <nav className="flex items-center gap-6">
-              <Link to="/profile" className="text-gray-700 hover:text-atlas-blue font-medium transition">Contact</Link>
-              <Link to="/account/orders" className="text-gray-700 hover:text-atlas-blue font-medium transition">History</Link>
-              <Link to="/login" className="text-gray-700 hover:text-atlas-blue font-medium transition">Log in</Link>
-              <Link to="/cart" className="relative hover:text-atlas-blue transition text-gray-700">
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-6">
+              <NavLink to="/profile">Contact</NavLink>
+              <NavLink to="/account/orders">History</NavLink>
+              <NavLink to="/login">Log in</NavLink>
+              <IconLink to="/cart" className="relative">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-              </Link>
-              <Link to="/cart" className="relative hover:text-blue-600 transition text-gray-700">
+                {count > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-atlas-green to-atlas-lime text-atlas-dark text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg animate-pulse">
+                    {count}
+                  </span>
+                )}
+              </IconLink>
+            </nav>
+
+            {/* Mobile Navigation - Cart and Menu Button */}
+            <div className="flex items-center gap-4 md:hidden">
+              <IconLink to="/cart" className="relative">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
@@ -103,9 +177,37 @@ export default function App(){
                     {count}
                   </span>
                 )}
-              </Link>
-            </nav>
+              </IconLink>
+              
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 text-gray-700 hover:text-atlas-blue transition"
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 py-4">
+              <nav className="flex flex-col gap-4">
+                <NavLink to="/profile" className="py-2">Contact</NavLink>
+                <NavLink to="/account/orders" className="py-2">History</NavLink>
+                <NavLink to="/login" className="py-2">Log in</NavLink>
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 
@@ -204,9 +306,9 @@ export default function App(){
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-b from-atlas-dark to-atlas-gray-dark text-atlas-gray-light border-t-2 border-atlas-gray-medium py-12 shadow-2xl">
+      <footer className="bg-gradient-to-b from-atlas-dark to-atlas-gray-dark text-atlas-gray-light border-t-2 border-atlas-gray-medium py-8 md:py-12 shadow-2xl">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-6 md:mb-8">
             {/* Information */}
             <div>
               <h3 className="text-white font-bold mb-4">Thông tin</h3>
@@ -253,8 +355,8 @@ export default function App(){
           </div>
 
           {/* Address & Contact */}
-          <div className="border-t-2 border-atlas-gray-medium pt-8 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+          <div className="border-t-2 border-atlas-gray-medium pt-6 md:pt-8 mb-6 md:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 text-xs md:text-sm">
               <div>
                 <h4 className="text-white font-bold mb-3">Địa chỉ</h4>
                 <p className="text-gray-300">1234 Street Address</p>

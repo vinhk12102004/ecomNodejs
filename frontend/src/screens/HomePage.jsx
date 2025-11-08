@@ -31,7 +31,7 @@ export default function HomePage() {
       </section>
 
       {/* --- FEATURED SECTIONS --- */}
-      <div className="space-y-12 mb-12">
+      <div className="space-y-8 md:space-y-12 mb-8 md:mb-12">
         {/* New Products */}
         <SectionGrid
           title="🆕 Sản phẩm mới"
@@ -56,27 +56,49 @@ export default function HomePage() {
 
       {/* --- MAIN PRODUCT SECTION WITH FILTERS --- */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar Filters */}
+        {/* Sidebar Filters - Collapsible on mobile */}
         <aside className="lg:w-64 flex-shrink-0">
-          <Filters
-            params={params}
-            onChange={(filters) => {
-              // ép React gọi lại useEffect trong useProducts.js
-              setQuery({ ...filters, _refresh: Date.now() });
-            }}
-          />
+          {/* Mobile: Collapsible Filters Button */}
+          <details className="lg:hidden">
+            <summary className="cursor-pointer bg-gradient-to-br from-atlas-dark to-atlas-gray-dark text-white rounded-2xl p-4 mb-4 shadow-lg font-semibold flex items-center justify-between list-none">
+              <span>🔍 Bộ lọc</span>
+              <svg className="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <div className="mt-4">
+              <Filters
+                params={params}
+                onChange={(filters) => {
+                  // ép React gọi lại useEffect trong useProducts.js
+                  setQuery({ ...filters, _refresh: Date.now() });
+                }}
+              />
+            </div>
+          </details>
+          
+          {/* Desktop: Always visible Filters */}
+          <div className="hidden lg:block">
+            <Filters
+              params={params}
+              onChange={(filters) => {
+                // ép React gọi lại useEffect trong useProducts.js
+                setQuery({ ...filters, _refresh: Date.now() });
+              }}
+            />
+          </div>
         </aside>
 
         {/* Main Products Area */}
         <div className="flex-1">
           {/* Top Bar */}
-          <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4 shadow-md">
-            <div className="text-sm text-gray-700 font-semibold">
+          <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-3 md:p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4 shadow-md">
+            <div className="text-xs sm:text-sm text-gray-700 font-semibold">
               Sản phẩm{" "}
               {((meta.page - 1) * meta.limit) + 1}-
               {Math.min(meta.page * meta.limit, meta.total)} trong tổng số {meta.total}
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full sm:w-auto">
               {/* View Mode Toggle */}
               <div className="flex items-center gap-2 bg-white border-2 border-gray-300 rounded-xl p-1 shadow-sm">
                 <button
@@ -107,7 +129,7 @@ export default function HomePage() {
                 </button>
               </div>
               <select
-                className="bg-white border-2 border-gray-300 text-gray-900 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-atlas-blue shadow-sm"
+                className="bg-white border-2 border-gray-300 text-gray-900 rounded-xl px-3 md:px-4 py-2 text-xs md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-atlas-blue shadow-sm flex-1 sm:flex-none min-w-0"
                 value={params.sort || "-createdAt"}
                 onChange={(e) => setQuery({ sort: e.target.value })}
               >
@@ -119,7 +141,7 @@ export default function HomePage() {
                 <option value="-name">Tên: Z-A</option>
               </select>
               <select
-                className="bg-white border-2 border-gray-300 text-gray-900 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-atlas-blue shadow-sm"
+                className="bg-white border-2 border-gray-300 text-gray-900 rounded-xl px-3 md:px-4 py-2 text-xs md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-atlas-blue shadow-sm flex-1 sm:flex-none min-w-0"
                 value={meta.limit}
                 onChange={(e) => setQuery({ limit: parseInt(e.target.value) })}
               >

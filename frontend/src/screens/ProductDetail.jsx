@@ -110,10 +110,10 @@ export default function ProductDetail(){
   const hasValidImages = images.length >= 3;
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      <div className="grid md:grid-cols-2 gap-8 mb-8">
+    <div className="container mx-auto px-4 py-4 md:py-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
+      <div className="grid md:grid-cols-2 gap-4 md:gap-8 mb-8">
         {/* Image Gallery */}
-        <div className="rounded-2xl bg-white border-2 border-gray-200 shadow-lg p-4 space-y-4">
+        <div className="rounded-2xl bg-white border-2 border-gray-200 shadow-lg p-3 md:p-4 space-y-3 md:space-y-4">
         {/* Warning if missing images */}
         {!hasValidImages && (
           <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-800 p-3 rounded-xl text-sm">
@@ -141,7 +141,7 @@ export default function ProductDetail(){
         
         {/* Thumbnails */}
         {images.length > 1 && (
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 md:gap-3">
             {images.map((img, idx) => (
               <button
                 key={idx}

@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 
 /**
  * AdminLayout - Sidebar + Header layout for admin pages
  */
 export default function AdminLayout({ children }) {
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const menuItems = [
     { path: '/admin/dashboard', label: 'Tổng quan', icon: '📊' },
@@ -24,8 +26,20 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r fixed h-screen overflow-y-auto shadow-lg">
+      <aside className={`
+        w-64 bg-white border-r fixed h-screen overflow-y-auto shadow-lg z-50
+        transform transition-transform duration-300 ease-in-out
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
         <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
           <h1 className="text-xl font-bold text-blue-600">Admin Panel</h1>
           <p className="text-xs text-slate-500">Ecom Laptop</p>
@@ -74,11 +88,22 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 ml-64">
+      <div className="flex-1 lg:ml-64">
         {/* Header */}
-        <header className="bg-white border-b sticky top-0 z-10">
-          <div className="px-6 py-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">
+        <header className="bg-white border-b sticky top-0 z-30">
+          <div className="px-4 md:px-6 py-4 flex items-center justify-between">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 text-slate-600 hover:text-blue-600 transition"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            
+            <h2 className="text-base md:text-lg font-semibold text-slate-900">
               {menuItems.find(item => isActive(item.path))?.label || 'Quản trị'}
             </h2>
             <div className="flex items-center gap-4">
@@ -97,7 +122,7 @@ export default function AdminLayout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {children}
         </main>
       </div>

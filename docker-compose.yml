@@ -37,9 +37,9 @@
 
   web:
     build: ./frontend
-    # Remove direct port exposure when using nginx
-    # ports:
-    #   - "5173:5173"
+    # Direct access for development (uncomment for direct access)
+    ports:
+      - "5173:5173"
     volumes:
       - ./frontend/src:/app/src
     environment:

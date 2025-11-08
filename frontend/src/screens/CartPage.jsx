@@ -92,9 +92,9 @@ export default function CartPage() {
       )}
 
       {/* Cart Layout */}
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
         {/* Cart Items (Left Column) */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3 md:space-y-4">
           {items.map((item) => (
             <CartItem key={item.product._id} item={item} />
           ))}
@@ -102,11 +102,13 @@ export default function CartPage() {
 
         {/* Cart Summary (Right Column) */}
         <div className="lg:col-span-1">
-          <CartSummary 
-            subtotal={subtotal}
-            total={subtotal}
-            showCheckoutButton={true}
-          />
+          <div className="sticky top-24">
+            <CartSummary 
+              subtotal={subtotal}
+              total={subtotal}
+              showCheckoutButton={true}
+            />
+          </div>
         </div>
       </div>
 
