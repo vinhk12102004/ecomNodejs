@@ -10,28 +10,34 @@ import * as coupons from "../../controllers/admin/coupon.controller.js";
 
 const router = Router();
 
+// ✅ Áp dụng middleware bảo vệ cho tất cả route admin
 router.use(authGuard(["admin"]), requireAdmin);
 
-// Dashboard
+// ✅ Ping route - cho phép AdminGuard kiểm tra quyền
+router.get("/ping", (req, res) => {
+  res.json({ ok: true, message: "Admin authenticated" });
+});
+
+// 🧭 Dashboard
 router.get("/dashboard/simple", dashboard.getSimple);
 router.get("/dashboard/advanced", dashboard.getAdvanced);
 
-// Orders
+// 📦 Orders
 router.get("/orders", orders.list);
 router.get("/orders/:id", orders.detail);
 router.patch("/orders/:id/status", orders.updateStatus);
 
-// Products
+// 🛍️ Products
 router.get("/products", products.listProducts);
 router.post("/products", products.createProduct);
 router.patch("/products/:id", products.updateProduct);
 router.delete("/products/:id", products.deleteProduct);
 
-// Users
+// 👥 Users
 router.get("/users", users.list);
 router.patch("/users/:id", users.update);
 
-// Coupons
+// 🎟️ Coupons
 router.get("/coupons", coupons.list);
 router.post("/coupons", coupons.create);
 router.patch("/coupons/:id", coupons.update);
