@@ -15,6 +15,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+export const getMyRating = (productId) =>
+  api.get(`/products/${productId}/ratings/me`).then(r => r.data);
+
+export const addRating = (productId, stars) =>
+  api.post(`/products/${productId}/ratings`, { stars }).then(r => r.data);
+
+
 // Product Helpers
 export const getProducts = (params={}) => api.get("/products", { params }).then(r=>r.data);
 export const getProduct = (id) => api.get(`/products/${id}`).then(r=>r.data);
