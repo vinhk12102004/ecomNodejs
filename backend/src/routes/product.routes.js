@@ -188,9 +188,9 @@ router.get("/:id/reviews", listReviews);
  *           schema:
  *             type: object
  *             required:
- *               - value
+ *               - stars
  *             properties:
- *               value:
+ *               stars:
  *                 type: number
  *                 minimum: 1
  *                 maximum: 5
@@ -200,7 +200,8 @@ router.get("/:id/reviews", listReviews);
  *       401:
  *         description: Unauthorized
  */
-router.post("/:id/ratings", authGuard(["customer", "admin"]), upsertRating);
+// require login to rating (1 user = 1 rating per product)
+router.post("/:id/ratings", upsertRating);
 
 /**
  * @swagger
@@ -223,7 +224,7 @@ router.post("/:id/ratings", authGuard(["customer", "admin"]), upsertRating);
  *       401:
  *         description: Unauthorized
  */
-router.get("/:id/ratings/me", authGuard(["customer", "admin"]), getMyRating);
+router.get("/:id/ratings/me", getMyRating);
 
 /**
  * @swagger
