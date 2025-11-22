@@ -13,7 +13,7 @@ A full-stack e-commerce platform built with React, Node.js, Express, and MongoDB
 - [API Documentation](#-api-documentation)
 - [Deployment](#-deployment)
 - [Scaling](#-scaling)
-- [Contributing](#-contributing)
+
 
 ## 🛠️ Tech Stack
 
