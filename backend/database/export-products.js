@@ -32,7 +32,7 @@ async function exportProductsToJSON() {
     console.log(`✓ Found ${products.length} products in database`);
     
     if (products.length === 0) {
-      console.log("⚠️  No products found in database to export!");
+      console.log("No products found in database to export!");
       process.exit(0);
     }
     
@@ -55,6 +55,5 @@ async function exportProductsToJSON() {
   }
 }
 
-// Run export if this file is executed directly
 exportProductsToJSON();
 
