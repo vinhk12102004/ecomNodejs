@@ -103,7 +103,7 @@ Create `backend/.env` file:
 
 ```env
 # Database
-MONGODB_URI=mongodb://vinhtrong04:Vinh1204@mongodb:27017/ecommerce?authSource=admin
+MONGODB_URI=mongodb://
 
 # JWT
 JWT_SECRET=your-jwt-secret-key
