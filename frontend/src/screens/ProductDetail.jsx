@@ -4,7 +4,6 @@ import { getProduct, getVariants } from "../lib/api";
 import useCart from "../hooks/useCart.js";
 import { formatPrice } from "../utils/formatPrice.js";
 import ProductReviews from "../components/ProductReviews.jsx"
-import ProductRatings from "../components/ProductRatings.jsx";
 
 
 export default function ProductDetail(){
@@ -485,7 +484,6 @@ export default function ProductDetail(){
 
       {/* Reviews Section */}
       <div className="max-w-4xl mx-auto">
-        <ProductRatings productId={id} />
         <ProductReviews productId={id} />
       </div>
     </div>
