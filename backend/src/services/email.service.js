@@ -40,6 +40,14 @@ export async function sendOrderConfirmation(to, order) {
 }
 
 /**
+ * Format number as Vietnamese Dong currency
+ */
+function formatCurrencyVND(amount) {
+  if (typeof amount !== 'number') amount = Number(amount) || 0;
+  return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
+}
+
+/**
  * Generate HTML for order confirmation email
  */
 function generateOrderConfirmationHTML(order) {
@@ -53,8 +61,8 @@ function generateOrderConfirmationHTML(order) {
       <tr>
         <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name || 'Product'}</td>
         <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${item.price.toFixed(2)}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${itemTotal.toFixed(2)}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrencyVND(item.price)}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrencyVND(itemTotal)}</td>
       </tr>
     `;
   });
@@ -108,17 +116,17 @@ function generateOrderConfirmationHTML(order) {
         <div style="background: white; padding: 20px; border-radius: 5px; margin-top: 20px;">
           <div style="display: flex; justify-content: space-between; padding: 5px 0;">
             <span>Subtotal:</span>
-            <span>$${subtotal.toFixed(2)}</span>
+            <span>${formatCurrencyVND(subtotal)}</span>
           </div>
           ${discount > 0 ? `
           <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #10b981;">
             <span>Discount:</span>
-            <span>-$${discount.toFixed(2)}</span>
+            <span>- ${formatCurrencyVND(discount)}</span>
           </div>
           ` : ''}
           <div style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 2px solid #667eea; margin-top: 10px; font-size: 18px; font-weight: bold; color: #667eea;">
             <span>Total:</span>
-            <span>$${total.toFixed(2)}</span>
+            <span>${formatCurrencyVND(total)}</span>
           </div>
         </div>
 
