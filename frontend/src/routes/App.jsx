@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
 import HomePage from "../screens/HomePage.jsx";
+import ProductsPage from "../screens/ProductsPage.jsx";
 import ProductDetail from "../screens/ProductDetail.jsx";
 import CartPage from "../screens/CartPage.jsx";
 import CheckoutPage from "../screens/CheckoutPage.jsx";
@@ -268,6 +269,10 @@ export default function App(){
       <main className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
         <Routes>
           <Route path="/" element={<HomePage/>} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products/new" element={<ProductsPage preset="new" />} />
+          <Route path="/products/best" element={<ProductsPage preset="best" />} />
+          <Route path="/products/laptops" element={<ProductsPage preset="laptop" />} />
           <Route path="/product/:id" element={<ProductDetail/>} />
           <Route path="/cart" element={<CartPage/>} />
           <Route path="/checkout" element={<CheckoutPage/>} />
