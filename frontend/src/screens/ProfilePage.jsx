@@ -31,22 +31,51 @@ export default function ProfilePage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    Promise.all([
-      getMe().then((u) => { 
-        if (mounted) {
-          setUser(u);
-          setProfileFormData({ name: u.name || '' });
-        }
-      }),
-      getAddresses().then((r) => { if (mounted) setAddresses(r.addresses || []); })
-    ])
-      .catch((e) => { if (mounted) setError(e.response?.data?.error || 'Không thể tải dữ liệu'); })
-      .finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
-  }, []);
+    useEffect(() => {
+      let mounted = true;
+
+      // 🔐 Nếu chưa có token -> không cho vào trang profile, chuyển sang /login
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setLoading(false);
+        navigate('/login');
+        return () => { mounted = false; };
+      }
+
+      setLoading(true);
+
+      Promise.all([
+        getMe().then((u) => {
+          if (mounted) {
+            setUser(u);
+            setProfileFormData({ name: u.name || '' });
+          }
+        }),
+        getAddresses().then((r) => {
+          if (mounted) setAddresses(r.addresses || []);
+        })
+      ])
+        .catch((e) => {
+          if (!mounted) return;
+
+          // Nếu token không hợp lệ / hết hạn -> xóa token + chuyển login
+          if (e.response?.status === 401) {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('user');
+            navigate('/login');
+            return;
+          }
+
+          // Các lỗi khác (lỗi server, mạng, ...) mới hiển thị ra
+          setError(e.response?.data?.error || 'Không thể tải dữ liệu');
+        })
+        .finally(() => {
+          if (mounted) setLoading(false);
+        });
+
+      return () => { mounted = false; };
+    }, [navigate]);
+
 
   const resetProfileForm = () => {
     setEditingProfile(false);
