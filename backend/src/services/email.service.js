@@ -103,7 +103,7 @@ function generateOrderConfirmationHTML(order) {
           <thead>
             <tr style="background: #667eea; color: white;">
               <th style="padding: 12px; text-align: left;">Product</th>
-              <th style="padding: 12px; text-align: center;">Qty</th>
+              <th style="padding: 12px; text-align: center;">Quantity</th>
               <th style="padding: 12px; text-align: right;">Price</th>
               <th style="padding: 12px; text-align: right;">Total</th>
             </tr>
