@@ -140,7 +140,7 @@ function generateOrderConfirmationHTML(order) {
         <div style="margin-top: 30px; text-align: center; color: #666; font-size: 14px;">
           <p>Need help? Contact us at <a href="mailto:support@ecomlaptop.com" style="color: #667eea;">support@ecomlaptop.com</a></p>
           <p style="margin-top: 20px;">
-            <a href="http://localhost:5173" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Visit Our Store</a>
+            <a href="http://localhost" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Visit Our Store</a>
           </p>
         </div>
       </div>
@@ -212,7 +212,7 @@ export async function sendWelcomeEmail(to, resetToken, userName = null) {
           <div style="margin-top: 30px; text-align: center; color: #666; font-size: 14px;">
             <p>Need help? Contact us at <a href="mailto:support@ecomlaptop.com" style="color: #667eea;">support@ecomlaptop.com</a></p>
             <p style="margin-top: 20px;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Visit Our Store</a>
+              <a href="${process.env.FRONTEND_URL || 'http://localhost'}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Visit Our Store</a>
             </p>
           </div>
         </div>
