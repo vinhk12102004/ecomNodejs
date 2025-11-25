@@ -6,6 +6,10 @@ import * as emailService from "../services/email.service.js";
 
 /**
  * Helper function to update order after successful payment
+ * Stock tracking logic (NO SCHEMA CHANGE NEEDED):
+ * - paymentStatus='pending' + paymentMethod='vnpay' = Stock already deducted, waiting for payment
+ * - paymentStatus='paid' = Payment confirmed, stock stays deducted
+ * - paymentStatus='failed' = Payment failed, need to restore stock
  */
 async function updateOrderAfterPayment(order, vnp_Params) {
   const vnp_ResponseCode = vnp_Params['vnp_ResponseCode'];
@@ -17,14 +21,15 @@ async function updateOrderAfterPayment(order, vnp_Params) {
   const vnp_TransactionStatus = vnp_Params['vnp_TransactionStatus'];
 
   // Only update if payment is successful and order is not already paid
-  // Response code 00 means success, TransactionStatus is optional (for IPN)
   const isSuccess = vnp_ResponseCode === '00' && 
     (vnp_TransactionStatus === undefined || vnp_TransactionStatus === '00');
   
-  console.log('updateOrderAfterPayment - ResponseCode:', vnp_ResponseCode);
-  console.log('updateOrderAfterPayment - TransactionStatus:', vnp_TransactionStatus);
-  console.log('updateOrderAfterPayment - isSuccess:', isSuccess);
-  console.log('updateOrderAfterPayment - Current paymentStatus:', order.paymentStatus);
+  console.log('=== Update Order After Payment ===');
+  console.log('ResponseCode:', vnp_ResponseCode);
+  console.log('TransactionStatus:', vnp_TransactionStatus);
+  console.log('isSuccess:', isSuccess);
+  console.log('Current paymentStatus:', order.paymentStatus);
+  console.log('Payment method:', order.paymentMethod);
   
   if (isSuccess && order.paymentStatus !== 'paid') {
     order.paymentStatus = 'paid';
@@ -44,13 +49,8 @@ async function updateOrderAfterPayment(order, vnp_Params) {
       at: new Date()
     });
 
-    // Update product stock
-    for (const item of order.items) {
-      await Product.findByIdAndUpdate(
-        item.product,
-        { $inc: { stock: -item.quantity } }
-      );
-    }
+    // DO NOT deduct stock here - already deducted during checkout!
+    console.log('✅ Payment successful. Stock was already deducted during checkout.');
 
     await order.save();
 
@@ -59,15 +59,19 @@ async function updateOrderAfterPayment(order, vnp_Params) {
     if (emailTo) {
       try {
         await emailService.sendOrderConfirmation(emailTo, order);
+        console.log('✅ Confirmation email sent to:', emailTo);
       } catch (emailErr) {
         console.error('Failed to send confirmation email:', emailErr);
       }
     }
 
     return true;
-  } else if (vnp_ResponseCode !== '00' && order.paymentStatus !== 'failed') {
-    // Payment failed
+  } else if (vnp_ResponseCode !== '00' && order.paymentStatus === 'pending') {
+    // Payment failed - RESTORE STOCK (only if still pending = stock was deducted)
+    console.log('❌ Payment failed. Restoring stock...');
+    
     order.paymentStatus = 'failed';
+    order.status = 'cancelled';
     order.paymentInfo = {
       vnpTransactionNo: vnp_TransactionNo || null,
       vnpBankCode: vnp_BankCode || null,
@@ -76,7 +80,27 @@ async function updateOrderAfterPayment(order, vnp_Params) {
       vnpResponseCode: vnp_ResponseCode,
       vnpTxnRef: vnp_TxnRef
     };
+
+    // Add cancelled status to history
+    order.statusHistory.push({
+      status: 'cancelled',
+      at: new Date()
+    });
+
+    // RESTORE STOCK: Add back the deducted quantity
+    // Only restore if paymentMethod is vnpay and payment was pending
+    if (order.paymentMethod === 'vnpay') {
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { stock: item.quantity } } // Add back stock
+        );
+        console.log(`✅ Restored ${item.quantity} units of product ${item.product}`);
+      }
+    }
+
     await order.save();
+    console.log('✅ Order cancelled and stock restored');
     return false;
   }
 
@@ -139,7 +163,6 @@ export async function handleReturn(req, res, next) {
   try {
     const vnp_Params = req.query;
 
-    // Log all parameters for debugging
     console.log('=== VNPAY Return Handler ===');
     console.log('VNPAY Params:', JSON.stringify(vnp_Params, null, 2));
 
@@ -151,16 +174,13 @@ export async function handleReturn(req, res, next) {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/vnpay/return?success=false&code=97&message=Invalid secure hash`);
     }
 
-    console.log('VNPAY Return: Hash validation passed');
+    console.log('✅ VNPAY Return: Hash validation passed');
 
     // Extract parameters
     const vnp_ResponseCode = vnp_Params['vnp_ResponseCode'];
     const vnp_TxnRef = vnp_Params['vnp_TxnRef'];
     const vnp_TransactionNo = vnp_Params['vnp_TransactionNo'];
     const vnp_Amount = vnp_Params['vnp_Amount'];
-    const vnp_BankCode = vnp_Params['vnp_BankCode'];
-    const vnp_CardType = vnp_Params['vnp_CardType'];
-    const vnp_PayDate = vnp_Params['vnp_PayDate'];
 
     console.log('VNPAY Response Code:', vnp_ResponseCode);
     console.log('VNPAY Transaction Ref:', vnp_TxnRef);
@@ -183,46 +203,43 @@ export async function handleReturn(req, res, next) {
 
     const responseMessage = responseCodeMessages[vnp_ResponseCode] || `Lỗi không xác định (Code: ${vnp_ResponseCode})`;
 
-    // Find order by transaction reference (vnp_TxnRef is the order ID)
+    // Find order
     const order = await Order.findById(vnp_TxnRef);
 
     if (!order) {
-      console.error('VNPAY Return: Order not found:', vnp_TxnRef);
+      console.error('❌ VNPAY Return: Order not found:', vnp_TxnRef);
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/vnpay/return?success=false&code=01&message=Order not found`);
     }
 
-    console.log('VNPAY Return: Order found:', order._id);
+    console.log('✅ VNPAY Return: Order found:', order._id);
 
-    // Check amount (vnp_Amount is multiplied by 100, so divide by 100 to compare)
+    // Check amount
     if (vnp_Amount) {
       const amountFromVNPAY = Number(vnp_Amount) / 100;
       const orderAmount = order.totalAmount;
       
       console.log('VNPAY Amount:', amountFromVNPAY, 'Order Amount:', orderAmount);
       
-      // Allow small difference due to rounding (1 VND tolerance)
       if (Math.abs(amountFromVNPAY - orderAmount) > 1) {
-        console.error('VNPAY Return: Amount mismatch');
+        console.error('❌ VNPAY Return: Amount mismatch');
         return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/vnpay/return?success=false&orderId=${order._id}&code=04&message=Amount invalid`);
       }
     }
 
-    // Update order if not already processed (in case IPN hasn't been called yet)
+    // Update order
     const isSuccess = await updateOrderAfterPayment(order, vnp_Params);
 
     console.log('VNPAY Return: Payment success:', isSuccess);
-    console.log('VNPAY Return: Response Code:', vnp_ResponseCode);
 
     // Redirect based on result
     if (isSuccess) {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/vnpay/return?success=true&orderId=${order._id}`);
     } else {
-      // Include response message in redirect
       const encodedMessage = encodeURIComponent(responseMessage);
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/vnpay/return?success=false&orderId=${order._id}&code=${vnp_ResponseCode || 'unknown'}&message=${encodedMessage}`);
     }
   } catch (error) {
-    console.error('VNPAY return handler error:', error);
+    console.error('❌ VNPAY return handler error:', error);
     return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/vnpay/return?success=false&code=99&message=${encodeURIComponent(error.message)}`);
   }
 }
@@ -236,42 +253,47 @@ export async function handleIPN(req, res, next) {
   try {
     const vnp_Params = req.body;
 
+    console.log('=== VNPAY IPN Handler ===');
+    console.log('IPN Params:', JSON.stringify(vnp_Params, null, 2));
+
     // Validate secure hash
     const isValid = validateSecureHash(vnp_Params);
     
     if (!isValid) {
-      return res.status(400).json({ 
+      console.error('❌ IPN: Invalid secure hash');
+      return res.status(200).json({ 
         RspCode: '97',
         Message: 'Invalid secure hash' 
       });
     }
 
+    console.log('✅ IPN: Hash validation passed');
+
     // Extract parameters
     const vnp_ResponseCode = vnp_Params['vnp_ResponseCode'];
     const vnp_TxnRef = vnp_Params['vnp_TxnRef'];
-    const vnp_TransactionNo = vnp_Params['vnp_TransactionNo'];
     const vnp_Amount = vnp_Params['vnp_Amount'];
-    const vnp_BankCode = vnp_Params['vnp_BankCode'];
-    const vnp_CardType = vnp_Params['vnp_CardType'];
-    const vnp_PayDate = vnp_Params['vnp_PayDate'];
     const vnp_TransactionStatus = vnp_Params['vnp_TransactionStatus'];
 
-    // Find order by transaction reference (vnp_TxnRef is the order ID)
+    // Find order
     const order = await Order.findById(vnp_TxnRef);
 
     if (!order) {
+      console.error('❌ IPN: Order not found:', vnp_TxnRef);
       return res.status(200).json({ 
         RspCode: '01',
         Message: 'Order not found' 
       });
     }
 
-    // Check amount (vnp_Amount is multiplied by 100, so divide by 100 to compare)
+    console.log('✅ IPN: Order found:', order._id);
+
+    // Check amount
     const amountFromVNPAY = Number(vnp_Amount) / 100;
     const orderAmount = order.totalAmount;
     
-    // Allow small difference due to rounding (1 VND tolerance)
     if (Math.abs(amountFromVNPAY - orderAmount) > 1) {
+      console.error('❌ IPN: Amount mismatch');
       return res.status(200).json({ 
         RspCode: '04',
         Message: 'Amount invalid' 
@@ -280,28 +302,30 @@ export async function handleIPN(req, res, next) {
 
     // Check if already processed (idempotency)
     if (order.paymentStatus === 'paid' && vnp_ResponseCode === '00') {
+      console.log('⚠️ IPN: Order already paid, skipping');
       return res.status(200).json({ 
         RspCode: '02',
         Message: 'This order has been updated to the payment status' 
       });
     }
 
-    // Update order (idempotency check is inside updateOrderAfterPayment)
+    // Update order
     const isSuccess = await updateOrderAfterPayment(order, {
       ...vnp_Params,
       vnp_TransactionStatus: vnp_TransactionStatus || vnp_ResponseCode
     });
+
+    console.log('✅ IPN: Order updated successfully');
 
     return res.status(200).json({ 
       RspCode: '00',
       Message: isSuccess ? 'Success' : 'Order updated' 
     });
   } catch (error) {
-    console.error('VNPAY IPN handler error:', error);
+    console.error('❌ VNPAY IPN handler error:', error);
     return res.status(200).json({ 
       RspCode: '99',
       Message: 'Internal error' 
     });
   }
 }
-
