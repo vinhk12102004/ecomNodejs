@@ -13,7 +13,7 @@ const specsSchema = new mongoose.Schema({
     type: { type: String, required: true, enum: ["NVMe", "SSD", "HDD"] },
     sizeGB: { type: Number, required: true }
   },
-  gpu: {
+  gpu: {                                                                                                                                                                    
     model: { type: String, required: true },
     vramGB: { type: Number, required: true }
   },

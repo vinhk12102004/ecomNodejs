@@ -58,10 +58,22 @@ export default function SectionGrid({ title, query, linkTo }) {
     );
   }
 
-  if (products.length === 0) {
-    return null; // Don't show empty sections
-  }
+  // if (products.length === 0) {
+  //   return null; // Don't show empty sections
+  // }
+           
+  if (!loading && !error && products.length === 0) {
     return (
+      <section className="mb-12">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">{title}</h2>
+        </div>
+        <div className="text-slate-500">Chưa có sản phẩm cho mục này.</div>
+      </section>
+    );
+  }
+
+  return (
     <section className="mb-12 overflow-hidden relative">
       {/* Section Header */}
       <div className="flex justify-between items-center mb-4">
