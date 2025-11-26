@@ -1,7 +1,51 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { adminListProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct } from '../../lib/api';
 import Pagination from '../../components/Pagination';
 import VariantsModal from '../../components/VariantsModal';
+
+const brandOptions = [
+  "Apple", "Dell", "HP", "Lenovo", "Asus", "Acer", "MSI",
+  "Razer", "LG", "Microsoft", "Gigabyte", "Samsung", "Other"
+];
+
+const categoryOptions = [
+  "Laptop", "Desktop", "Monitor", "Accessory", "Tablet",
+  "Smartphone", "Peripheral", "Gaming", "Office", "Other"
+];
+
+const initialSpecs = {
+  cpuModel: '',
+  cpuCores: '',
+  cpuThreads: '',
+  cpuBaseGHz: '',
+  cpuBoostGHz: '',
+  ramGB: '',
+  storageType: 'NVMe',
+  storageSizeGB: '',
+  gpuModel: '',
+  gpuVramGB: '',
+  screenSizeInch: '',
+  screenResolution: '',
+  screenPanel: '',
+  screenRefreshHz: '',
+  weightKg: '',
+  batteryWh: '',
+  os: '',
+  ports: '',
+  wifi: '',
+  bluetooth: ''
+};
+
+const initialFormState = {
+  name: '',
+  price: '',
+  brand: brandOptions[0],
+  category: categoryOptions[0],
+  tags: '',
+  images: '',
+  description: '',
+  ...initialSpecs
+};
 
 export default function ProductsList() {
   const [products, setProducts] = useState([]);
@@ -10,9 +54,11 @@ export default function ProductsList() {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', price: '', images: '', description: '' });
+  const [formData, setFormData] = useState(initialFormState);
   const [submitting, setSubmitting] = useState(false);
   const [variantsModal, setVariantsModal] = useState(null);
+
+  const requiredSpecKeys = useMemo(() => Object.keys(initialSpecs), []);
 
   useEffect(() => {
     loadProducts();
@@ -43,7 +89,7 @@ export default function ProductsList() {
   const resetForm = () => {
     setShowForm(false);
     setEditingId(null);
-    setFormData({ name: '', price: '', images: '', description: '' });
+    setFormData(initialFormState);
   };
 
   const handleEdit = (product) => {
@@ -51,8 +97,31 @@ export default function ProductsList() {
     setFormData({
       name: product.name || '',
       price: product.price || '',
+      brand: product.brand || brandOptions[0],
+      category: product.category || categoryOptions[0],
+      tags: (product.tags || []).join(', '),
       images: (product.images || []).join('\n'),
-      description: product.description || ''
+      description: product.description || '',
+      cpuModel: product.specs?.cpu?.model || '',
+      cpuCores: product.specs?.cpu?.cores ?? '',
+      cpuThreads: product.specs?.cpu?.threads ?? '',
+      cpuBaseGHz: product.specs?.cpu?.baseGHz ?? '',
+      cpuBoostGHz: product.specs?.cpu?.boostGHz ?? '',
+      ramGB: product.specs?.ramGB ?? '',
+      storageType: product.specs?.storage?.type || 'NVMe',
+      storageSizeGB: product.specs?.storage?.sizeGB ?? '',
+      gpuModel: product.specs?.gpu?.model || '',
+      gpuVramGB: product.specs?.gpu?.vramGB ?? '',
+      screenSizeInch: product.specs?.screen?.sizeInch ?? '',
+      screenResolution: product.specs?.screen?.resolution || '',
+      screenPanel: product.specs?.screen?.panel || '',
+      screenRefreshHz: product.specs?.screen?.refreshHz ?? '',
+      weightKg: product.specs?.weightKg ?? '',
+      batteryWh: product.specs?.batteryWh ?? '',
+      os: product.specs?.os || '',
+      ports: (product.specs?.ports || []).join(', '),
+      wifi: product.specs?.wifi || '',
+      bluetooth: product.specs?.bluetooth || ''
     });
     setShowForm(true);
   };
@@ -73,11 +142,54 @@ export default function ProductsList() {
         return;
       }
 
+      const missingSpecs = requiredSpecKeys.filter((key) => !`${formData[key]}`.trim());
+      if (missingSpecs.length > 0) {
+        alert('Vui lòng nhập đầy đủ thông số kỹ thuật');
+        setSubmitting(false);
+        return;
+      }
+
       const data = {
         name: formData.name,
         price: parseFloat(formData.price),
+        brand: formData.brand,
+        category: formData.category,
+        tags: formData.tags
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter(Boolean),
         images: imageArray,
-        description: formData.description
+        description: formData.description,
+        specs: {
+          cpu: {
+            model: formData.cpuModel,
+            cores: Number(formData.cpuCores),
+            threads: Number(formData.cpuThreads),
+            baseGHz: Number(formData.cpuBaseGHz),
+            boostGHz: Number(formData.cpuBoostGHz)
+          },
+          ramGB: Number(formData.ramGB),
+          storage: {
+            type: formData.storageType,
+            sizeGB: Number(formData.storageSizeGB)
+          },
+          gpu: {
+            model: formData.gpuModel,
+            vramGB: Number(formData.gpuVramGB)
+          },
+          screen: {
+            sizeInch: Number(formData.screenSizeInch),
+            resolution: formData.screenResolution,
+            panel: formData.screenPanel,
+            refreshHz: Number(formData.screenRefreshHz)
+          },
+          weightKg: Number(formData.weightKg),
+          batteryWh: Number(formData.batteryWh),
+          os: formData.os,
+          ports: formData.ports.split(',').map((port) => port.trim()).filter(Boolean),
+          wifi: formData.wifi,
+          bluetooth: formData.bluetooth
+        }
       };
 
       if (editingId) {
@@ -181,6 +293,283 @@ export default function ProductsList() {
                 {formData.description.length} / 200 ký tự
               </p>
             </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Thương hiệu *</label>
+                <select
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  required
+                >
+                  {brandOptions.map((brand) => (
+                    <option key={brand} value={brand}>
+                      {brand}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Danh mục *</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  required
+                >
+                  {categoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Tags (phân tách bằng dấu phẩy)</label>
+              <input
+                type="text"
+                value={formData.tags}
+                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="gaming, lightweight, office"
+              />
+            </div>
+
+            <div className="border-t pt-4">
+              <h3 className="text-base font-semibold mb-3">Thông số kỹ thuật *</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">CPU - Model *</label>
+                  <input
+                    type="text"
+                    value={formData.cpuModel}
+                    onChange={(e) => setFormData({ ...formData, cpuModel: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Cores *</label>
+                    <input
+                      type="number"
+                      value={formData.cpuCores}
+                      onChange={(e) => setFormData({ ...formData, cpuCores: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      min="1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Threads *</label>
+                    <input
+                      type="number"
+                      value={formData.cpuThreads}
+                      onChange={(e) => setFormData({ ...formData, cpuThreads: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      min="1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Base (GHz) *</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={formData.cpuBaseGHz}
+                      onChange={(e) => setFormData({ ...formData, cpuBaseGHz: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      min="0"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Boost (GHz) *</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={formData.cpuBoostGHz}
+                    onChange={(e) => setFormData({ ...formData, cpuBoostGHz: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">RAM (GB) *</label>
+                  <input
+                    type="number"
+                    value={formData.ramGB}
+                    onChange={(e) => setFormData({ ...formData, ramGB: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="1"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Storage Type *</label>
+                    <select
+                      value={formData.storageType}
+                      onChange={(e) => setFormData({ ...formData, storageType: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      required
+                    >
+                      <option value="NVMe">NVMe</option>
+                      <option value="SSD">SSD</option>
+                      <option value="HDD">HDD</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Storage (GB) *</label>
+                    <input
+                      type="number"
+                      value={formData.storageSizeGB}
+                      onChange={(e) => setFormData({ ...formData, storageSizeGB: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      min="1"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">GPU - Model *</label>
+                  <input
+                    type="text"
+                    value={formData.gpuModel}
+                    onChange={(e) => setFormData({ ...formData, gpuModel: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">GPU VRAM (GB) *</label>
+                  <input
+                    type="number"
+                    value={formData.gpuVramGB}
+                    onChange={(e) => setFormData({ ...formData, gpuVramGB: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Màn hình - Kích thước (inch) *</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={formData.screenSizeInch}
+                    onChange={(e) => setFormData({ ...formData, screenSizeInch: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Màn hình - Độ phân giải *</label>
+                  <input
+                    type="text"
+                    value={formData.screenResolution}
+                    onChange={(e) => setFormData({ ...formData, screenResolution: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="2560 x 1600"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Màn hình - Tấm nền *</label>
+                  <input
+                    type="text"
+                    value={formData.screenPanel}
+                    onChange={(e) => setFormData({ ...formData, screenPanel: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="IPS / OLED..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Màn hình - Tần số (Hz) *</label>
+                  <input
+                    type="number"
+                    value={formData.screenRefreshHz}
+                    onChange={(e) => setFormData({ ...formData, screenRefreshHz: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Trọng lượng (kg) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.weightKg}
+                    onChange={(e) => setFormData({ ...formData, weightKg: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Pin (Wh) *</label>
+                  <input
+                    type="number"
+                    value={formData.batteryWh}
+                    onChange={(e) => setFormData({ ...formData, batteryWh: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Hệ điều hành *</label>
+                  <input
+                    type="text"
+                    value={formData.os}
+                    onChange={(e) => setFormData({ ...formData, os: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Cổng kết nối (cách nhau dấu phẩy) *</label>
+                  <input
+                    type="text"
+                    value={formData.ports}
+                    onChange={(e) => setFormData({ ...formData, ports: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="USB-C, Thunderbolt 4..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Wi-Fi *</label>
+                  <input
+                    type="text"
+                    value={formData.wifi}
+                    onChange={(e) => setFormData({ ...formData, wifi: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="802.11ax (WiFi 6E)..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Bluetooth *</label>
+                  <input
+                    type="text"
+                    value={formData.bluetooth}
+                    onChange={(e) => setFormData({ ...formData, bluetooth: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="Bluetooth 5.3..."
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="flex gap-2">
               <button
                 type="submit"

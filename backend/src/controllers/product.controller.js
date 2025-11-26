@@ -13,6 +13,7 @@ export const listProducts = async (req, res, next) => {
       page: rawPage = 1,
       limit: rawLimit = 20,
       q,
+      search,
       brand,
       category,
       tags,
@@ -29,8 +30,20 @@ export const listProducts = async (req, res, next) => {
     // ✅ Build filter object
     const filter = {};
 
-    // Text search
-    if (q) filter.$text = { $search: q };
+    // Text search (support both ?q= and ?search=)
+    const searchTerm = q || search;
+    if (searchTerm) {
+      // escape các ký tự đặc biệt trong regex
+      const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(escaped, "i"); // i = không phân biệt hoa thường
+
+      filter.$or = [
+        { name: regex },
+        { brand: regex },
+        { tags: regex },         
+   
+      ];
+    }
 
     // Brand filter
     if (brand && brand.length > 0) {

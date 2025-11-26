@@ -32,9 +32,15 @@ export default function HomePage() {
   return (
     <div className="container mx-auto px-4 py-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
       {/* Banner Section */}
-      <section className="bg-gradient-to-r from-atlas-blue to-atlas-green mb-8 rounded-2xl overflow-hidden shadow-xl">
+      <section className="mb-8 rounded-2xl overflow-hidden shadow-xl">
         <div className="relative h-64 md:h-96 flex items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-atlas-blue/90 to-atlas-green/90"></div>
+          {/* Background Image */}
+          <img 
+            src="https://dlcdnwebimgs.asus.com/gain/82703BCB-1197-443B-9FC0-42F6810FB130/fwebp/fwebp" 
+            alt="ASUS TUF GAMING Banner" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Content */}
           <div className="relative z-10 text-center text-white px-4">
             <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">
               ASUS TUF GAMING
