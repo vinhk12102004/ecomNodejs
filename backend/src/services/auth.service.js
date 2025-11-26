@@ -38,6 +38,7 @@ export async function signup({ email, name }) {
     email, 
     password_hash, 
     name,
+    role: "customer",
     resetToken,
     resetTokenExpires
   });

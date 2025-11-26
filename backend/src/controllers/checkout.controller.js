@@ -8,6 +8,7 @@ import ProductVariant from "../models/productVariant.model.js";
 import Coupon from "../models/coupon.model.js";
 import User from "../models/user.model.js";
 import PointsLedger from "../models/pointsLedger.model.js";
+import * as authService from "../services/auth.service.js";
 
 /**
  * POST /checkout/preview
@@ -315,22 +316,37 @@ export async function confirm(req, res) {
     if (!userId && email) {
       let userDoc = await User.findOne({ email });
 
+      // Chỉ khi email chưa có user thì mới tạo account + gửi mail đặt mật khẩu
       if (!userDoc) {
-        const randomPassword = Math.random().toString(36).slice(-8);
-        const bcrypt = await import("bcrypt");
-        const password_hash = await bcrypt.hash(randomPassword, 10);
+        try {
+          // Tạo user mới với random password + reset token 24h
+          const { user: newUser, resetToken } = await authService.signup({
+            email,
+            name: email.split("@")[0],
+          });
 
-        userDoc = await User.create({
-          email,
-          password_hash,
-          role: "customer",
-          name: email.split("@")[0],
-        });
+          userDoc = newUser;
 
-        console.log(`Auto-created account for guest: ${email}`);
+          // Gửi email chào mừng kèm link đặt mật khẩu (one-time, 24h)
+          emailService
+            .sendWelcomeEmail(userDoc.email, resetToken, userDoc.name)
+            .catch((err) => {
+              console.error(
+                "Failed to send welcome email for guest checkout:",
+                err
+              );
+            });
+
+          console.log(`Auto-created account for guest via checkout: ${email}`);
+        } catch (signupErr) {
+          console.error("Auto-signup for guest failed:", signupErr);
+          // Không chặn checkout, nhưng cũng không gắn order vào user nếu fail
+        }
       }
 
-      orderUserId = userDoc._id;
+      if (userDoc) {
+        orderUserId = userDoc._id;
+      }
       guestEmail = email;
     }
 
