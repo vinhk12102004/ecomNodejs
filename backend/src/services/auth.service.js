@@ -38,6 +38,7 @@ export async function signup({ email, name }) {
     email, 
     password_hash, 
     name,
+    role: "customer",
     resetToken,
     resetTokenExpires
   });
@@ -129,5 +130,30 @@ export async function resetPassword(resetToken, newPassword) {
   user.resetTokenExpires = null;
   await user.save();
   
+  return user;
+}
+
+/**
+ * Change password for authenticated user
+ */
+export async function changePassword(userId, currentPassword, newPassword) {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error("USER_NOT_FOUND");
+  }
+
+  if (!user.password_hash) {
+    throw new Error("PASSWORD_NOT_SET");
+  }
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+  if (!isMatch) {
+    throw new Error("INVALID_CURRENT_PASSWORD");
+  }
+
+  const password_hash = await bcrypt.hash(newPassword, 12);
+  user.password_hash = password_hash;
+  await user.save();
+
   return user;
 }

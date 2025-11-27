@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
 import HomePage from "../screens/HomePage.jsx";
+import ProductsPage from "../screens/ProductsPage.jsx";
 import ProductDetail from "../screens/ProductDetail.jsx";
 import CartPage from "../screens/CartPage.jsx";
 import CheckoutPage from "../screens/CheckoutPage.jsx";
@@ -80,11 +81,26 @@ function IconLink({ to, children, className = "" }) {
   );
 }
 
+// Route guard: chỉ cho vào nếu đã đăng nhập
+function RequireAuth({ children }) {
+  const token = localStorage.getItem('accessToken'); // key này đúng với LoginPage.jsx
+  const location = useLocation();
+
+  // Nếu chưa có token -> chuyển sang trang login
+  if (!token) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  return children;
+}
+
+
 export default function App(){
   const location = useLocation();
   const { count, fetchCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+  const [currentUser, setCurrentUser] = useState(null);
+
   // Fetch cart count on mount and on focus
   useEffect(() => {
     fetchCount();
@@ -101,6 +117,25 @@ export default function App(){
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
+
+  // Đồng bộ user từ localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        setCurrentUser(JSON.parse(stored));
+      } else {
+        setCurrentUser(null);
+      }
+    } catch (err) {
+      console.error('Failed to parse user from localStorage', err);
+      setCurrentUser(null);
+    }
+  }, [location.pathname]);
+
+  const displayName =
+    currentUser?.name ||
+    (currentUser?.email ? currentUser.email.split('@')[0] : '');
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -151,9 +186,20 @@ export default function App(){
             
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
-              <NavLink to="/profile">Contact</NavLink>
+              <NavLink to="/profile">Profile</NavLink>
               <NavLink to="/account/orders">History</NavLink>
-              <NavLink to="/login">Log in</NavLink>
+              {currentUser ? (
+                // Đã đăng nhập
+                <Link
+                  to="/profile"
+                  className="font-semibold text-atlas-blue hover:text-atlas-blue/80 transition-all"
+                >
+                  Xin chào, {displayName}
+                </Link>
+              ) : (
+                // Chưa đăng nhập
+                <NavLink to="/login">Log in</NavLink>
+              )}
               <IconLink to="/cart" className="relative">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -202,9 +248,18 @@ export default function App(){
           {mobileMenuOpen && (
             <div className="md:hidden border-t border-gray-200 py-4">
               <nav className="flex flex-col gap-4">
-                <NavLink to="/profile" className="py-2">Contact</NavLink>
+                <NavLink to="/profile" className="py-2">Profile</NavLink>
                 <NavLink to="/account/orders" className="py-2">History</NavLink>
-                <NavLink to="/login" className="py-2">Log in</NavLink>
+                {currentUser ? (
+                  <Link
+                    to="/profile"
+                    className="py-2 font-semibold text-atlas-blue"
+                  >
+                    Xin chào, {displayName}
+                  </Link>
+                ) : (
+                  <NavLink to="/login" className="py-2">Log in</NavLink>
+                )}
               </nav>
             </div>
           )}
@@ -214,15 +269,40 @@ export default function App(){
       <main className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
         <Routes>
           <Route path="/" element={<HomePage/>} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products/new" element={<ProductsPage preset="new" />} />
+          <Route path="/products/best" element={<ProductsPage preset="best" />} />
+          <Route path="/products/laptops" element={<ProductsPage preset="laptop" />} />
           <Route path="/product/:id" element={<ProductDetail/>} />
           <Route path="/cart" element={<CartPage/>} />
           <Route path="/checkout" element={<CheckoutPage/>} />
           <Route path="/thank-you" element={<ThankYouPage/>} />
           <Route path="/payment/vnpay/return" element={<VnpayReturnPage/>} />
-          <Route path="/order/:id" element={<OrderDetail/>} />
-          <Route path="/account/orders" element={<MyOrders/>} />
-          <Route path="/account/orders/:id" element={<OrderDetail/>} />
-          <Route path="/profile" element={<ProfilePage/>} />
+          <Route path="/order/:id" element={<OrderDetail />} />
+          <Route
+            path="/account/orders"
+            element={
+              <RequireAuth>
+                <MyOrders />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/account/orders/:id"
+            element={
+              <RequireAuth>
+                <OrderDetail />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <ProfilePage />
+              </RequireAuth>
+            }
+          />
           <Route path="/login" element={<LoginPage/>} />
           <Route path="/signup" element={<SignupPage/>} />
           <Route path="/forgot-password" element={<ForgotPasswordPage/>} />

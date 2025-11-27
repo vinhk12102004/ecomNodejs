@@ -72,6 +72,20 @@ export default function Filters({ params, onChange }){
           placeholder="Tìm kiếm..." 
           value={q} 
           onChange={e=>setQ(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              onChange({ 
+                q: q || undefined, 
+                brand: brand || undefined,
+                category: category || undefined,
+                tags: tags.length > 0 ? tags : undefined,
+                minPrice: minPrice || undefined, 
+                maxPrice: maxPrice || undefined,
+                ratingGte: ratingGte || undefined,
+                sort 
+              });
+            }
+          }}
         />
       </div>
 

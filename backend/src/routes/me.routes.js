@@ -7,7 +7,7 @@ const router = Router();
 // All routes require authentication
 router.use(authGuard());
 
-// Profile management
+// Profile + password update
 router.patch("/", meController.updateProfile);
 
 // Address management
@@ -18,4 +18,3 @@ router.delete("/addresses/:addrId", meController.deleteAddress);
 router.patch("/addresses/:addrId/default", meController.setDefaultAddress);
 
 export default router;
-

@@ -66,6 +66,7 @@ export const ListQuerySchema = z.object({
   page: z.string().transform(val => parseInt(val) || 1).pipe(z.number().int().min(1)).optional().default("1"),
   limit: z.string().transform(val => parseInt(val) || 12).pipe(z.number().int().min(1).max(100)).optional().default("12"),
   q: z.string().optional(),
+  search: z.string().optional(),
   // Support both string "MSI,Asus" and array ["MSI", "Asus"]
   brand: z.union([
     z.string().transform(val => val ? val.split(',').map(b => b.trim()) : undefined),
@@ -84,4 +85,7 @@ export const ListQuerySchema = z.object({
   minRamGB: z.string().transform(val => parseInt(val) || undefined).pipe(z.number().int().min(1)).optional(),
   ratingGte: z.string().transform(val => parseFloat(val) || undefined).pipe(z.number().min(0).max(5)).optional(),
   sort: z.string().optional().default("-createdAt")
-});
+}).transform(({ search, ...rest }) => ({
+  ...rest,
+  q: rest.q ?? search
+}));
