@@ -171,6 +171,14 @@ export default function ProfilePage() {
     });
   };
 
+  const resetPasswordForm = () => {
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  };
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setProfileSubmitting(true);
