@@ -37,6 +37,7 @@ export const login = (data) => api.post('/auth/login', data).then(r => r.data);
 export const googleLogin = (idToken) => api.post('/auth/google', { idToken }).then(r => r.data);
 export const forgotPassword = (email) => api.post('/auth/forgot-password', { email }).then(r => r.data);
 export const resetPassword = (token, password) => api.post('/auth/reset-password', { token, password }).then(r => r.data);
+export const changePassword = (payload) => api.post('/auth/change-password', payload).then(r => r.data);
 export const logout = () => api.post('/auth/logout').then(r => r.data);
 export const refreshToken = () => api.post('/auth/refresh').then(r => r.data);
 
@@ -132,4 +133,3 @@ export const adminUpdateVariant = (sku, data) =>
   api.patch(`/admin/variants/${sku}`, data).then(r => r.data);
 export const adminDeleteVariant = (sku) => 
   api.delete(`/admin/variants/${sku}`).then(r => r.data);
-

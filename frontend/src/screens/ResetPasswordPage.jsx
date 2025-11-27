@@ -2,12 +2,40 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { resetPassword } from '../lib/api';
 
+function PasswordToggleButton({ isVisible, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-700"
+      aria-pressed={isVisible}
+    >
+      <span className="sr-only">{label}</span>
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
+        <circle cx="12" cy="12" r="3" />
+        {!isVisible && <line x1="4" y1="4" x2="20" y2="20" />}
+      </svg>
+    </button>
+  );
+}
+
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
 
   const [formData, setFormData] = useState({ password: '', confirmPassword: '' });
+  const [showPassword, setShowPassword] = useState({ password: false, confirm: false });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -122,39 +150,53 @@ export default function ResetPasswordPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+              <div className="space-y-1">
                 <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
                   Mật khẩu mới *
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  value={formData.password}
-                  onChange={handlePasswordChange}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    passwordError ? 'border-red-300' : 'border-slate-300'
-                  }`}
-                  placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword.password ? 'text' : 'password'}
+                    required
+                    value={formData.password}
+                    onChange={handlePasswordChange}
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12 ${
+                      passwordError ? 'border-red-300' : 'border-slate-300'
+                    }`}
+                    placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
+                  />
+                  <PasswordToggleButton
+                    isVisible={showPassword.password}
+                    onClick={() => setShowPassword((prev) => ({ ...prev, password: !prev.password }))}
+                    label={showPassword.password ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  />
+                </div>
                 {passwordError && (
                   <p className="text-red-600 text-xs mt-1">{passwordError}</p>
                 )}
               </div>
 
-              <div>
+              <div className="space-y-1">
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
                   Xác nhận mật khẩu *
                 </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Nhập lại mật khẩu mới"
-                />
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showPassword.confirm ? 'text' : 'password'}
+                    required
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+                    placeholder="Nhập lại mật khẩu mới"
+                  />
+                  <PasswordToggleButton
+                    isVisible={showPassword.confirm}
+                    onClick={() => setShowPassword((prev) => ({ ...prev, confirm: !prev.confirm }))}
+                    label={showPassword.confirm ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  />
+                </div>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -187,4 +229,3 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
-
