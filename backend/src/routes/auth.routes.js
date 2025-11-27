@@ -188,4 +188,39 @@ router.post("/forgot-password", authController.forgotPassword);
  */
 router.post("/reset-password", authController.resetPassword);
 
+/**
+ * @swagger
+ * /auth/change-password:
+ *   post:
+ *     summary: Change password for authenticated user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *               confirmPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ */
+router.post("/change-password", authGuard(), authController.changePassword);
+
 export default router;

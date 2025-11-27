@@ -1,12 +1,39 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMe, updateProfile, getAddresses, createAddress, updateAddress, deleteAddress, setDefaultAddress, logout } from '../lib/api';
+import { getMe, updateProfile, getAddresses, createAddress, updateAddress, deleteAddress, setDefaultAddress, logout, changePassword } from '../lib/api';
+
+function PasswordToggleButton({ isVisible, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-white"
+      aria-pressed={isVisible}
+    >
+      <span className="sr-only">{label}</span>
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
+        <circle cx="12" cy="12" r="3" />
+        {!isVisible && <line x1="4" y1="4" x2="20" y2="20" />}
+      </svg>
+    </button>
+  );
+}
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [addresses, setAddresses] = useState([]);
-  const [activeTab, setActiveTab] = useState('profile'); // 'profile' or 'addresses'
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'addresses' | 'security'
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   
@@ -63,6 +90,21 @@ export default function ProfilePage() {
     ward: ''
   });
   const [submitting, setSubmitting] = useState(false);
+
+  // Security form state
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordVisibility, setPasswordVisibility] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
     useEffect(() => {
       let mounted = true;
@@ -128,7 +170,6 @@ export default function ProfilePage() {
       ward: ''
     });
   };
-
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
@@ -196,6 +237,42 @@ export default function ProfilePage() {
     } catch (err) {
       alert(err.response?.data?.error || 'Lỗi khi đặt mặc định');
     }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordError('Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError('Mật khẩu mới phải có ít nhất 6 ký tự');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('Xác nhận mật khẩu không khớp');
+      return;
+    }
+
+    setPasswordSubmitting(true);
+    try {
+      await changePassword(passwordForm);
+      setPasswordSuccess('Đổi mật khẩu thành công!');
+      resetPasswordForm();
+    } catch (err) {
+      setPasswordError(err.response?.data?.error || 'Không thể đổi mật khẩu. Vui lòng thử lại.');
+    } finally {
+      setPasswordSubmitting(false);
+    }
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setPasswordVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   const handleLogout = async () => {
@@ -271,6 +348,14 @@ export default function ProfilePage() {
               }`}
             >
               Địa chỉ ({addresses.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('security')}
+              className={`px-4 py-2 font-medium border-b-2 transition ${
+                activeTab === 'security' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-400 hover:text-white'
+              }`}
+            >
+              Bảo mật & Mật khẩu
             </button>
           </div>
         </div>
@@ -562,6 +647,95 @@ export default function ProfilePage() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Security Tab */}
+      {activeTab === 'security' && (
+        <div className="space-y-6">
+          <div className="bg-gray-900 border border-gray-800 rounded p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Đổi mật khẩu</h2>
+
+            {passwordError && (
+              <div className="mb-4 bg-red-900/30 border border-red-600 rounded p-3 text-sm text-red-200">
+                {passwordError}
+              </div>
+            )}
+
+            {passwordSuccess && (
+              <div className="mb-4 bg-green-900/30 border border-green-600 rounded p-3 text-sm text-green-200">
+                {passwordSuccess}
+              </div>
+            )}
+
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-300">Mật khẩu hiện tại *</label>
+                <div className="relative">
+                  <input
+                    type={passwordVisibility.current ? 'text' : 'password'}
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white pr-12"
+                    required
+                  />
+                  <PasswordToggleButton
+                    isVisible={passwordVisibility.current}
+                    onClick={() => togglePasswordVisibility('current')}
+                    label={passwordVisibility.current ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-300">Mật khẩu mới *</label>
+                <div className="relative">
+                  <input
+                    type={passwordVisibility.new ? 'text' : 'password'}
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white pr-12"
+                    placeholder="Tối thiểu 6 ký tự"
+                    required
+                  />
+                  <PasswordToggleButton
+                    isVisible={passwordVisibility.new}
+                    onClick={() => togglePasswordVisibility('new')}
+                    label={passwordVisibility.new ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-300">Xác nhận mật khẩu mới *</label>
+                <div className="relative">
+                  <input
+                    type={passwordVisibility.confirm ? 'text' : 'password'}
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white pr-12"
+                    required
+                  />
+                  <PasswordToggleButton
+                    isVisible={passwordVisibility.confirm}
+                    onClick={() => togglePasswordVisibility('confirm')}
+                    label={passwordVisibility.confirm ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-blue-900/20 border border-blue-700 rounded p-3 text-xs text-blue-200">
+                - Không chia sẻ mật khẩu với bất kỳ ai.<br />
+                - Chọn mật khẩu đủ mạnh, kết hợp chữ hoa, chữ thường, số hoặc ký tự đặc biệt.
+              </div>
+
+              <button
+                type="submit"
+                disabled={passwordSubmitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                {passwordSubmitting ? 'Đang đổi mật khẩu...' : 'Đổi mật khẩu'}
+              </button>
+            </form>
           </div>
         </div>
       )}
