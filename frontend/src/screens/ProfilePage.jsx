@@ -44,6 +44,39 @@ export default function ProfilePage() {
   });
   const [profileSubmitting, setProfileSubmitting] = useState(false);
 
+  // State cho đổi mật khẩu
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      alert("Mật khẩu mới và xác nhận không khớp");
+      return;
+    }
+
+    setPasswordSubmitting(true);
+    try {
+      const updatedUser = await updateProfile({
+        oldPassword: passwordForm.oldPassword,
+        newPassword: passwordForm.newPassword
+      });
+      alert("Đổi mật khẩu thành công");
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      alert(err.response?.data?.error || "Lỗi khi đổi mật khẩu");
+    } finally {
+      setPasswordSubmitting(false);
+    }
+  };
+
+
+
   // Address form state
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -405,6 +438,51 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
+
+            <div className="bg-gray-900 border border-gray-800 rounded p-6 mt-6">
+              <h2 className="text-lg font-semibold text-white mb-4">Đổi mật khẩu</h2>
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-300 mb-1">Mật khẩu cũ</label>
+                  <input
+                    type="password"
+                    value={passwordForm.oldPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-300 mb-1">Mật khẩu mới</label>
+                  <input
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-300 mb-1">Xác nhận mật khẩu mới</label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={passwordSubmitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {passwordSubmitting ? 'Đang đổi...' : 'Đổi mật khẩu'}
+                </button>
+              </form>
+            </div>
+
+
 
             {/* Loyalty Points */}
             <div className="bg-gray-900 border border-gray-800 rounded p-6">

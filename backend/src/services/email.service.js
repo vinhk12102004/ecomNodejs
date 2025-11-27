@@ -40,6 +40,14 @@ export async function sendOrderConfirmation(to, order) {
 }
 
 /**
+ * Format number as Vietnamese Dong currency
+ */
+function formatCurrencyVND(amount) {
+  if (typeof amount !== 'number') amount = Number(amount) || 0;
+  return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
+}
+
+/**
  * Generate HTML for order confirmation email
  */
 function generateOrderConfirmationHTML(order) {
@@ -53,8 +61,8 @@ function generateOrderConfirmationHTML(order) {
       <tr>
         <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name || 'Product'}</td>
         <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${item.price.toFixed(2)}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${itemTotal.toFixed(2)}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrencyVND(item.price)}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrencyVND(itemTotal)}</td>
       </tr>
     `;
   });
@@ -95,7 +103,7 @@ function generateOrderConfirmationHTML(order) {
           <thead>
             <tr style="background: #667eea; color: white;">
               <th style="padding: 12px; text-align: left;">Product</th>
-              <th style="padding: 12px; text-align: center;">Qty</th>
+              <th style="padding: 12px; text-align: center;">Quantity</th>
               <th style="padding: 12px; text-align: right;">Price</th>
               <th style="padding: 12px; text-align: right;">Total</th>
             </tr>
@@ -108,17 +116,17 @@ function generateOrderConfirmationHTML(order) {
         <div style="background: white; padding: 20px; border-radius: 5px; margin-top: 20px;">
           <div style="display: flex; justify-content: space-between; padding: 5px 0;">
             <span>Subtotal:</span>
-            <span>$${subtotal.toFixed(2)}</span>
+            <span>${formatCurrencyVND(subtotal)}</span>
           </div>
           ${discount > 0 ? `
           <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #10b981;">
             <span>Discount:</span>
-            <span>-$${discount.toFixed(2)}</span>
+            <span>- ${formatCurrencyVND(discount)}</span>
           </div>
           ` : ''}
           <div style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 2px solid #667eea; margin-top: 10px; font-size: 18px; font-weight: bold; color: #667eea;">
             <span>Total:</span>
-            <span>$${total.toFixed(2)}</span>
+            <span>${formatCurrencyVND(total)}</span>
           </div>
         </div>
 
@@ -132,7 +140,7 @@ function generateOrderConfirmationHTML(order) {
         <div style="margin-top: 30px; text-align: center; color: #666; font-size: 14px;">
           <p>Need help? Contact us at <a href="mailto:support@ecomlaptop.com" style="color: #667eea;">support@ecomlaptop.com</a></p>
           <p style="margin-top: 20px;">
-            <a href="http://localhost:5173" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Visit Our Store</a>
+            <a href="http://localhost" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Visit Our Store</a>
           </p>
         </div>
       </div>
@@ -204,7 +212,7 @@ export async function sendWelcomeEmail(to, resetToken, userName = null) {
           <div style="margin-top: 30px; text-align: center; color: #666; font-size: 14px;">
             <p>Need help? Contact us at <a href="mailto:support@ecomlaptop.com" style="color: #667eea;">support@ecomlaptop.com</a></p>
             <p style="margin-top: 20px;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Visit Our Store</a>
+              <a href="${process.env.FRONTEND_URL || 'http://localhost'}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Visit Our Store</a>
             </p>
           </div>
         </div>
