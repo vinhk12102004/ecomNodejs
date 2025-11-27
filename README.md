@@ -145,7 +145,9 @@ VITE_API_BASE_URL=http://localhost/api
 VITE_GOOGLE_CLIENT_ID=your-google-client-id
 ```
 
-### 3. Install dependencies (if running without Docker)
+### 3. (Optional) Install dependencies for local development
+
+> ⚠️ Bỏ qua bước này nếu bạn chỉ chạy ứng dụng bằng Docker.
 
 ```bash
 # Backend
@@ -181,66 +183,29 @@ The MongoDB connection is configured in `backend/.env`. For Docker deployment, M
 
 ## 🏃 Running the Application
 
-### Option 1: Docker Compose (Recommended)
+### Docker Compose (Default Workflow)
+
+> Toàn bộ dự án được đóng gói thành các container (frontend, backend, nginx, mongo, mailhog). Bạn chỉ cần Docker + Docker Compose.
 
 ```bash
-# Start all services
-docker-compose up -d
+# Start all services (frontend, backend, nginx, mongo, mailhog)
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop all services
-docker-compose down
+docker compose down
 ```
 
-Access the application:
+Access once the stack is up:
 - **Frontend**: http://localhost
-- **Backend API**: http://localhost/api
-- **MailHog UI**: http://localhost:8025 (for email testing)
+- **Backend API**: http://localhost/api (proxied via nginx)
+- **Swagger UI**: http://localhost/api/docs
+- **MailHog UI**: http://localhost:8025 (email testing)
 - **MongoDB**: localhost:27017
 
-### Option 2: Local Development
-
-#### Start MongoDB
-```bash
-# Using Docker
-docker run -d -p 27017:27017 --name mongodb \
-  -e MONGO_INITDB_ROOT_USERNAME=vinhtrong04 \
-  -e MONGO_INITDB_ROOT_PASSWORD=Vinh1204 \
-  mongo:7
-
-# Or use local MongoDB
-mongod
-```
-
-#### Start Backend
-```bash
-cd backend
-npm run dev
-```
-
-Backend will run on http://localhost:4000
-
-#### Start Frontend
-```bash
-cd frontend
-npm run dev
-```
-
-Frontend will run on http://localhost:5173
-
-### Option 3: Production Build
-
-```bash
-# Build frontend
-cd frontend
-npm run build
-
-# Start backend in production mode
-cd backend
-NODE_ENV=production node src/server.js
-```
+> Nếu bạn thật sự cần chạy thủ công phục vụ phát triển, xem phần “Optional) Install dependencies” bên trên rồi tự start `npm run dev`. Tuy nhiên quy trình mặc định là Docker.
 
 ## 📚 API Documentation
 
@@ -455,8 +420,8 @@ The API documentation is available at:
 - Example requests and responses
 
 ### Using Swagger UI:
-1. Start the server: `npm run dev` (backend)
-2. Open http://localhost:4000/api/docs in your browser
+1. Start the stack: `docker compose up -d`
+2. Open http://localhost/api/docs (proxied via nginx)
 3. Click "Authorize" button to add JWT token (Bearer token)
 4. Test endpoints directly from the UI
 

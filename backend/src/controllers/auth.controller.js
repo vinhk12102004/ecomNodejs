@@ -180,6 +180,43 @@ export async function resetPassword(req, res) {
   }
 }
 
+/**
+ * Change password for authenticated user
+ */
+export async function changePassword(req, res) {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body || {};
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ error: "All password fields are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "New password must be at least 6 characters" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: "New password confirmation does not match" });
+    }
+
+    await authService.changePassword(req.user.id, currentPassword, newPassword);
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    if (err.message === "INVALID_CURRENT_PASSWORD") {
+      return res.status(400).json({ error: "Current password is incorrect" });
+    }
+    if (err.message === "PASSWORD_NOT_SET") {
+      return res.status(400).json({ error: "Password is not set for this account" });
+    }
+    if (err.message === "USER_NOT_FOUND") {
+      return res.status(404).json({ error: "User not found" });
+    }
+    console.error("changePassword error", err);
+    res.status(500).json({ error: "Unable to change password right now" });
+  }
+}
+
 export async function googleLogin(req, res) {
   try {
     const { idToken } = req.body || {};
