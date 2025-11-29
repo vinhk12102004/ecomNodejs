@@ -1,0 +1,87 @@
+services:
+  # Nginx Load Balancer - Uses image from Docker Hub
+  nginx:
+    image: ${DOCKER_USERNAME}/ecom-nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"  # For HTTPS (if configured)
+    depends_on:
+      - api
+      - web
+    networks:
+      - default
+    restart: unless-stopped
+
+  # Backend API - Uses image from Docker Hub
+  api:
+    image: ${DOCKER_USERNAME}/ecom-backend:latest
+    # Port mapping removed - only accessible via nginx internally
+    # ports:
+    #   - "4000:4000"
+    env_file: ./backend/.env
+    environment:
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+      # Other environment variables should be in ./backend/.env file
+    volumes:
+      # Mount source code for hot-reload (optional, remove in pure production)
+      - ./backend/src:/app/src
+      - ./backend/database:/app/database
+    command: npm run dev
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    networks:
+      - default
+
+  # Frontend - Uses image from Docker Hub
+  web:
+    image: ${DOCKER_USERNAME}/ecom-frontend:latest
+    # Port mapping removed - only accessible via nginx internally
+    # ports:
+    #   - "5173:5173"
+    volumes:
+      # Mount source code for hot-reload (optional, remove in pure production)
+      - ./frontend/src:/app/src
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost/api}
+      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+    command: sh -c "VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost/api} VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID} npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - default
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"  # Expose for external access if needed
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-ecommerce}
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    networks:
+      - default
+
+  # MailHog for email testing (optional in production)
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    networks:
+      - default
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
+

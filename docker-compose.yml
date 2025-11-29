@@ -20,6 +20,12 @@
       - "4000:4000"   # ← thêm lại để NGINX mới route được
     env_file: ./backend/.env
     environment:
+      - GOOGLE_CLIENT_ID=477491683221-coa8dm509q3o13na4t1mamk1b0dls1se.apps.googleusercontent.com
+      - VNP_TMN_CODE=WVPILPKE
+      - VNP_HASH_SECRET=406I8J10RA2FVTKC0J3JPC3AA0023FNE
+      - VNP_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - VNP_RETURN_URL=http://localhost/api/payment/vnpay/return
+      - VNP_IPN_URL=http://your-domain.com/api/payment/vnpay/ipn
       - FRONTEND_URL=http://localhost
     volumes:
       - ./backend/src:/app/src
@@ -30,7 +36,9 @@
 
 
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     # Direct access for development (uncomment for direct access)
     ports:
       - "5173:5173"
