@@ -46,54 +46,32 @@ jobs:
       - name: Push Nginx Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/ecom-nginx:latest
 
-  deploy:
+    deploy:
     needs: build_and_push
     runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
 
-      # --- SSH vào VPS và deploy ---
-      - name: Deploy to VPS
+    steps:
+      - name: Deploy to local machine via Ngrok
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_PORT }}
-          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Di chuyển đến thư mục deploy
-            cd ${{ secrets.VPS_DEPLOY_PATH }}
-            
-            # Load environment variables từ file .env (nếu có)
-            if [ -f .env ]; then
-              export $(cat .env | grep -v '^#' | xargs)
-            fi
-            
-            # Export DOCKER_USERNAME để docker-compose.prod.yml sử dụng
-            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            
-            # Pull code mới nhất từ GitHub
-            echo "📥 Pulling latest code from GitHub..."
+            cd "${{ secrets.VPS_DEPLOY_PATH }}"
+
+            echo "📥 Pulling latest code..."
             git pull origin main
-            
-            # Pull các Docker images mới nhất từ Docker Hub
-            echo "🐳 Pulling latest Docker images..."
+
+            echo "🐳 Pulling Docker images..."
             docker compose -f docker-compose.prod.yml pull
-            
-            # Dừng các containers cũ
-            echo "🛑 Stopping old containers..."
+
+            echo "🛑 Stopping containers..."
             docker compose -f docker-compose.prod.yml down
-            
-            # Khởi động lại stack với images mới
-            echo "🚀 Starting containers with new images..."
+
+            echo "🚀 Starting containers..."
             docker compose -f docker-compose.prod.yml up -d
-            
-            # Kiểm tra trạng thái containers
-            echo "✅ Checking container status..."
+
+            echo "✅ Status:"
             docker compose -f docker-compose.prod.yml ps
-            
-            # Cleanup các images cũ (optional)
-            echo "🧹 Cleaning up old images..."
-            docker image prune -f
