@@ -1,0 +1,57 @@
+name: CI-CD Deploy NodeJS + Docker
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+      
+      - name: Build Docker image
+        run: docker build -t ecom-nodejs .
+
+      - name: Save Docker image
+        run: docker save ecom-nodejs | gzip > ecom.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ecom-app
+          path: ecom.tar.gz
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: ecom-app
+      
+      - name: Copy to server via SSH
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          source: "ecom.tar.gz"
+          target: "/var/www/app"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          script: |
+            cd /var/www/app
+            gunzip -f ecom.tar.gz
+            docker load < ecom.tar
+            docker stop app || true
+            docker rm app || true
+            docker run -d -p 4000:4000 --name app ecom-nodejs

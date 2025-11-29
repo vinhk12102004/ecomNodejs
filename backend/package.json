@@ -15,6 +15,8 @@
     "create-admin": "node create-admin.js"
   },
   "dependencies": {
+    "@google/genai": "^1.30.0",
+    "@google/generative-ai": "^0.24.1",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
@@ -27,6 +29,7 @@
     "mongoose": "^8.0.3",
     "nodemailer": "^7.0.10",
     "qs": "^6.14.0",
+    "react-draggable": "^4.5.0",
     "socket.io": "^4.7.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
