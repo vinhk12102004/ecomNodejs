@@ -185,8 +185,6 @@ The MongoDB connection is configured in `backend/.env`. For Docker deployment, M
 
 ### Docker Compose (Default Workflow)
 
-> Toàn bộ dự án được đóng gói thành các container (frontend, backend, nginx, mongo, mailhog). Bạn chỉ cần Docker + Docker Compose.
-
 ```bash
 # Start all services (frontend, backend, nginx, mongo, mailhog)
 docker compose up -d
@@ -204,17 +202,6 @@ Access once the stack is up:
 - **Swagger UI**: http://localhost/api/docs
 - **MailHog UI**: http://localhost:8025 (email testing)
 - **MongoDB**: localhost:27017
-
-> Nếu bạn thật sự cần chạy thủ công phục vụ phát triển, xem phần “Optional) Install dependencies” bên trên rồi tự start `npm run dev`. Tuy nhiên quy trình mặc định là Docker.
-
-## 📚 API Documentation
-
-### Interactive API Documentation (Swagger)
-
-The API documentation is available at:
-- **Swagger UI**: http://localhost:4000/api/docs
-- **Swagger JSON**: http://localhost:4000/api/docs.json
-
 
 ### API Endpoints Overview
 
@@ -428,7 +415,7 @@ The API documentation is available at:
 ## 🔗 Links
 
 - **GitHub Repository**: https://github.com/vinhk12102004/ecomNodejs
-- **Demo**: 
+- **Demo**: https://youtu.be/UqbkiGuqmX0
 - **API Documentation**: http://localhost:4000/api/docs (Swagger UI)
 
 ## 📞 Support
