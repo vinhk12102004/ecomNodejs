@@ -45,53 +45,40 @@ jobs:
 
       - name: Push Nginx Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/ecom-nginx:latest
+  
+    deploy:
+      needs: build_and_push
+      runs-on: ubuntu-latest
+      
+      steps:
+        - name: Deploy to local machine via Ngrok
+          uses: appleboy/ssh-action@v1.0.3
+          with:
+            host: ${{ secrets.VPS_HOST }}
+            username: ${{ secrets.VPS_USER }}
+            port: ${{ secrets.VPS_PORT }}
+            key: ${{ secrets.VPS_SSH_KEY }}
+            script: |
+              REM Đi tới thư mục project (có docker-compose.prod.yml)
+              cd /d "${{ secrets.VPS_DEPLOY_PATH }}"
 
-  deploy:
-    needs: build_and_push
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+              REM (nếu docker-compose.prod.yml có dùng ${DOCKER_USERNAME} thì mới cần dòng này)
+              set DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
 
-      # --- SSH vào VPS và deploy ---
-      - name: Deploy to VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          port: ${{ secrets.VPS_PORT }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          envs: DOCKER_USERNAME
-          env: |
-            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-          script: |
-            # Di chuyển đến thư mục deploy
-            cd ${{ secrets.VPS_DEPLOY_PATH }}
-            
-            # Export DOCKER_USERNAME để docker-compose.prod.yml sử dụng
-            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            
-            # Pull code mới nhất từ GitHub
-            echo "📥 Pulling latest code from GitHub..."
-            git pull origin main
-            
-            # Pull các Docker images mới nhất từ Docker Hub
-            echo "🐳 Pulling latest Docker images..."
-            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml pull
-            
-            # Dừng các containers cũ
-            echo "🛑 Stopping old containers..."
-            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml down
-            
-            # Khởi động lại stack với images mới
-            echo "🚀 Starting containers with new images..."
-            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml up -d
-            
-            # Kiểm tra trạng thái containers
-            echo "✅ Checking container status..."
-            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml ps
-            
-            # Cleanup các images cũ (optional)
-            echo "🧹 Cleaning up old images..."
-            docker image prune -f
+              echo Pull latest code from GitHub...
+              git pull origin main
+
+              echo Pull latest Docker images...
+              docker compose -f docker-compose.prod.yml pull
+
+              echo Stop old containers...
+              docker compose -f docker-compose.prod.yml down
+
+              echo Start containers with new images...
+              docker compose -f docker-compose.prod.yml up -d
+
+              echo Check containers...
+              docker compose -f docker-compose.prod.yml ps
+
+              echo Clean old images...
+              docker image prune -f
