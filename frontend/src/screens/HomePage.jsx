@@ -5,6 +5,7 @@ import ProductCard from "../components/ProductCard";
 import Filters from "../components/Filters";
 import Pagination from "../components/Pagination";
 import SectionGrid from "../components/SectionGrid";
+import ChatBot from "../components/ChatBot";
 
 export default function HomePage() {
   const [searchParams] = useSearchParams();
@@ -229,6 +230,7 @@ export default function HomePage() {
           )}
         </div>
       </div>
+      <ChatBot/>
     </div>
   );
 }

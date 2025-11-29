@@ -11,6 +11,7 @@ import orderRoutes from "./order.routes.js";
 import vnpayRoutes from "./vnpay.routes.js";
 import { authGuard } from "../middleware/auth.js";
 import { sitemap } from "../controllers/sitemap.controller.js";
+import aiRoutes from "./ai.routes.js";
 
 const router = Router();
 
@@ -53,6 +54,7 @@ router.use("/me", meRoutes);
 router.use("/orders", orderRoutes);
 router.use("/payment/vnpay", vnpayRoutes);
 router.use(variantRoutes); // Variant routes (includes /products/:id/variants and /admin/variants/:sku)
+router.use("/ai", aiRoutes);
 
 router.get("/admin/ping", authGuard(["admin"]), (req, res) => {
   res.json({ ok: true, role: "admin" });
