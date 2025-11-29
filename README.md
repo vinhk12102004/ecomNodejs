@@ -46,6 +46,25 @@ A full-stack e-commerce platform built with React, Node.js, Express, and MongoDB
 - **MongoDB**: Database
 - **MailHog**: Email testing (development)
 
+🧠 Gemini AI Chatbot Integration
+
+A built-in helper chatbot is included in the frontend to assist users during shopping.
+
+📌 Features
+✔ Answer product questions automatically
+✔ Works in real-time on UI
+✔ API securely stored in .env
+
+⚙️ CI/CD Pipeline (GitHub Actions)
+
+Every time code is pushed to main, the workflow will:
+
+1. Checkout source
+2. Login Docker Hub
+3. Build backend image
+4. Build frontend image
+5. Push both to Docker Hub automatically
+
 ## 📁 Project Structure
 
 ```
@@ -75,6 +94,9 @@ ecomNodejs/
 │   ├── nginx.conf          # Nginx config
 │   └── Dockerfile          # Nginx Docker image
 ├── docker-compose.yml      # Docker Compose configuration
+├── .github
+│   └── Workflows
+│       └── deploy.yml      # CI/CD Pipeline deployment
 └── README.md
 ```
 
@@ -146,8 +168,6 @@ VITE_GOOGLE_CLIENT_ID=your-google-client-id
 ```
 
 ### 3. (Optional) Install dependencies for local development
-
-> ⚠️ Bỏ qua bước này nếu bạn chỉ chạy ứng dụng bằng Docker.
 
 ```bash
 # Backend
@@ -420,8 +440,3 @@ The API documentation is available at:
 
 ## 📞 Support
 
-For support, email trongvinhle04@gmail.com or open an issue in the repository.
-
-
-Update CI/CD test new new new✔dsadâsđdasasddasfasds
-d

@@ -12,7 +12,6 @@ import { swaggerSetup } from "./config/swagger.js";
 
 const app = express();
 
-/* ⛔ FIX CORS 100% WORK */
 app.use(cors({
   origin: ["http://localhost", "http://localhost:5173"], // Chấp nhận cả 2
   credentials: true
