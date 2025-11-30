@@ -322,11 +322,13 @@ docker-compose ps
    - Set `VNP_RETURN_URL` and `VNP_IPN_URL` to production URLs
    - Configure real SMTP server (Gmail, SendGrid, etc.)
 
-2. **Build production images**:
+2. **Pull production images from Docker Hub**:
 
 ```bash
-docker-compose -f docker-compose.prod.yml build
-docker-compose -f docker-compose.prod.yml up -d
+# Pull images built by CI pipeline
+docker pull <DOCKER_USERNAME>/ecom-backend:latest
+docker pull <DOCKER_USERNAME>/ecom-frontend:latest
+docker pull <DOCKER_USERNAME>/ecom-nginx:latest
 ```
 
 3. **Configure Nginx** for SSL/TLS (HTTPS)

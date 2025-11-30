@@ -1,4 +1,4 @@
-name: CI/CD Build & Push Docker Images
+name: CI Build & Push Docker Images
 
 on:
   push:
@@ -45,33 +45,3 @@ jobs:
 
       - name: Push Nginx Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/ecom-nginx:latest
-
-    deploy:
-    needs: build_and_push
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy to local machine via Ngrok
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          port: ${{ secrets.VPS_PORT }}
-          script: |
-            cd "${{ secrets.VPS_DEPLOY_PATH }}"
-
-            echo "📥 Pulling latest code..."
-            git pull origin main
-
-            echo "🐳 Pulling Docker images..."
-            docker compose -f docker-compose.prod.yml pull
-
-            echo "🛑 Stopping containers..."
-            docker compose -f docker-compose.prod.yml down
-
-            echo "🚀 Starting containers..."
-            docker compose -f docker-compose.prod.yml up -d
-
-            echo "✅ Status:"
-            docker compose -f docker-compose.prod.yml ps
