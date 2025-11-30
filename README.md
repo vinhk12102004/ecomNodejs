@@ -440,5 +440,3 @@ The API documentation is available at:
 - **Demo**: https://youtu.be/UqbkiGuqmX0
 - **API Documentation**: http://localhost:4000/api/docs (Swagger UI)
 
-## 📞 Support
-
